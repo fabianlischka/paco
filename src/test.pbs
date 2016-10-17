@@ -1,0 +1,198 @@
+#!/bin/bash
+
+###############################################################
+#                                                             #
+#    Bourne shell script for submitting a parallel MVAPICH2   #
+#    job to the PBS queue using the qsub command.             #
+#                                                             #
+###############################################################
+
+#     Remarks: A line beginning with # is a comment;
+#            A line beginning with #PBS is a PBS directive;
+#              Assume (upper/lower) case to be sensitive;
+#              PBS directives must come first; any directives
+#              after the first executable statement are ignored.
+#
+#     Use:     submit job with command
+#              qsub pbs_mvapich2.pbs
+#
+   
+##########################
+#                        #
+#   The PBS directives   #
+#                        #
+##########################
+
+#          Set the name of the job (up to 15 characters, 
+#          no blank spaces, start with alphanumeric character)
+#          Default is name of pbs script file
+
+#PBS -N DD_Control
+
+#          Specify the number of nodes requested and the
+#          number of processors per node.
+#          For tdgrocks and hpcsim, the number of processors per node=2
+#          For sciblade, the number of processors per node=8 
+#	      In this example request of 8 compute nodes, with 2 processors on each.
+
+#PBS -l nodes=2:ppn=2
+
+#          By default, the standard output and error streams are sent
+#          to files in the current working directory with names:
+#              JobName.oJobid  <-  output stream
+#              JobName.eJobid  <-  error stream
+#          where JobName is the name of the job and Jobid 
+#          is the job number assigned when the job is submitted.
+#          Use the directives below to change the files to which the
+#          standard output and error streams are sent.
+
+#    #PBS -o stdout_file
+#    #PBS -e stderr_file
+
+#          The directive below directs that the standard output and
+#          error streams are to be merged, intermixed, as standard
+#          output. Otherwise you get them in separate files.
+
+##PBS -j oe
+
+#          Specify the maximum cpu and wall clock time. The wall
+#          clock time should take possible queue waiting time into
+#          account.  Format:   hhhh:mm:ss   hours:minutes:seconds
+#          Be sure to specify a reasonable value here.
+#          If the job does not finish by the time reached,
+#          the job is terminated.
+
+#PBS -l     cput=6:00:00
+#PBS -l walltime=6:00:00
+
+#          Specify the queue name. Jobs submitted to these queues
+#          will run in cpu-dedicated mode; if all cpu's assigned to the
+#          queue are occupied with a job, then new jobs are queued and will
+#          not run until a cpu is freed up.  You should take this waiting
+#          time into account when setting "walltime". 
+#          The default queue "default" , need not be specified.
+#           
+
+#PBS -q default
+
+#          Specify the maximum amount of physical memory required per process.
+#          kb for kilobytes, mb for megabytes, gb for gigabytes.
+#          Take some care in setting this value.  Setting it too large
+#          can result in your job waiting in the queue for sufficient
+#          resources to become available.
+
+#PBS -l pmem=512mb
+
+#          PBS can send informative email messages to you about the
+#          status of your job.  Specify a string which consists of
+#          either the single character "n" (no mail), or one or more
+#          of the characters "a" (send mail when job is aborted),
+#          "b" (send mail when job begins), and "e" (send mail when
+#          job terminates).  The default is "a" if not specified.
+#          You should also specify the email address to which the
+#          message should be send via the -M option.
+
+#  e.g. send me mail when job aborts (with an error) or job end
+#  #PBS -m ae
+
+#  if you want more than one message, you can group flags as follows:
+#  #PBS -m abe
+
+#PBS -M felix_kwok@hkbu.edu.hk
+
+#          Declare the time after which the job is eligible for execution.
+#          If you wish the job to be immediately eligible for execution,
+#          comment out this directive.  If you wish to run at some time in 
+#          future, the date-time argument format is
+#                      [MMDD]hhmm
+#          If the day DD is not specified, it will default to today if the
+#          time hhmm is in the future, otherwise, it defaults to tomorrow.
+#          If the day DD is specified as in the future, it defaults to the
+#          current month, otherwise, it defaults to next month.
+#	      e.g July 11, 22:15
+
+# #PBS -a 07112215  commented out
+
+#          Do not rerun this job if it fails
+
+#PBS -r n
+
+
+##########################################
+#                                        #
+#   PBS Environment Variables			 #
+#                                        #
+##########################################
+
+#   When a batch job starts execution, a number of environment variables 
+#   predefined, which include:
+# 
+#   The following reflect the environment where the user ran qsub:
+#   PBS_O_HOST       The host where you ran the qsub command.
+#   PBS_O_LOGNAME    Your user ID where you ran qsub.
+#   PBS_O_HOME       Your home directory where you ran qsub.
+#   PBS_O_WORKDIR    The working directory where you ran qsub.
+#
+#   These reflect the environment where the job is executing:
+#   PBS_ENVIRONMENT  Set to PBS_BATCH to indicate the job is a batch job, or
+#                    to PBS_INTERACTIVE to indicate the job is a PBS interactive job.
+#   PBS_O_QUEUE      The original queue you submitted to.
+#   PBS_QUEUE        The queue the job is executing from.
+#   PBS_JOBID        The job's PBS identifier.
+#   PBS_JOBNAME      The job's name.
+#
+
+##########################################
+#                                        #
+#   Output some useful job information.  #
+#                                        #
+##########################################
+
+NCPU=`wc -l < $PBS_NODEFILE`
+NNODES=`uniq $PBS_NODEFILE | wc -l`
+
+echo ------------------------------------------------------
+echo ' This job is allocated on '${NCPU}' cpu(s)'
+echo 'Job is running on node(s): '
+cat $PBS_NODEFILE
+echo ------------------------------------------------------
+echo PBS: qsub is running on $PBS_O_HOST
+echo PBS: originating queue is $PBS_O_QUEUE
+echo PBS: executing queue is $PBS_QUEUE
+echo PBS: working directory is $PBS_O_WORKDIR
+echo PBS: execution mode is $PBS_ENVIRONMENT
+echo PBS: job identifier is $PBS_JOBID
+echo PBS: job name is $PBS_JOBNAME
+echo PBS: node file is $PBS_NODEFILE
+echo PBS: number of nodes is $NNODES
+echo PBS: current home directory is $PBS_O_HOME
+echo PBS: PATH = $PBS_O_PATH
+echo ------------------------------------------------------
+
+###########################################################
+#                                                         #
+#    To avoid CPU affinity problem                        #
+#                                                         #
+###########################################################
+
+VIADEV_USE_AFFINITY=0
+
+
+###########################################################
+#                                                         #
+#   Set MPIPATH                                           #
+#                                                         #
+###########################################################
+MPIPATH=/u1/local/mvapich2/bin
+
+###########################################################
+#                                                         #
+#    Execute the run.  Do not run in the background.      #
+#                                                         #
+###########################################################
+
+${MPIPATH}/mpirun_rsh -np ${NCPU} -hostfile ${PBS_NODEFILE} $HOME/tests/control/dd_gmres $PWD
+
+
+
+		      

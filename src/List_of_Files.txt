@@ -1,0 +1,45 @@
+
+Length Name
+------ ----
+       examples
+  1902 control.h
+  3556 control_main.c
+  3411 control_main_full.c
+  4448 control_test.c
+ 12402 dd_gmres.c
+ 12396 dd_gmres_full.c
+  6816 dd_main.c
+  7090 dd_main_full.c
+  8776 IO.c
+   469 jacobi.h
+  1605 Makefile
+   201 minitest.c
+ 10858 old_dd.c
+  2838 old_solver.c
+ 14144 Problem.c
+   731 read_parallel.c
+  1480 Solver.c
+  7930 test.pbs
+
+  By size:
+  Length Name
+  ------ ----
+         examples
+   14144 Problem.c
+   12402 dd_gmres.c
+   12396 dd_gmres_full.c
+   10858 old_dd.c
+    8776 IO.c
+    7930 test.pbs
+    7090 dd_main_full.c
+    6816 dd_main.c
+    4448 control_test.c
+    3556 control_main.c
+    3411 control_main_full.c
+    2838 old_solver.c
+    1902 control.h
+    1605 Makefile
+    1480 Solver.c
+     731 read_parallel.c
+     469 jacobi.h
+     201 minitest.c
