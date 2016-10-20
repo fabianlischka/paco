@@ -1,13 +1,38 @@
+% stokes.edp provides: u.txt, v.txt, mass.txt, rih.txt, stiff.txt
+% where u, v 1370 x 1, mass, stiff 736 x 736
+% inputs used here appear to be: ff, vv, u, v; 
+% mi, mj, ms (=mass.txt?); ki, kj, ks (=?); bj, bi, ones (=?)
+% nu
+% where:
+% u, v = 1370 x 1   (from u, v)
+% ff   = 1370 x 3   (from ??), integers between 1 and 736: indices into
+% mass/stiff?
+% vv   =  736 x 3   (from ??), col 1: float [-1..1], col 2: float [0,1], col 3: int 0,1,2,3 
+% mi,j,s = 4946 x 1 (from mass.txt)
+% ki,j,s = 4946 x 1 (from stiff.txt?)
+% bi,j,s =   41 x 1 (from Rih.txt?)
+
+% [ik,jk,sk] = fvm( ff(k,:), vv(ff(k,:),1:2), [u(k), v(k)], vv(ff(k,:),3) );
+%                   -> vv    -> q             -> u          -> where
+
 ii = [];
 jj = [];
 ss = [];
+
+
+
+# vv = vertices
+# ff = faces
+% geometry, comes from stokes.msh
+
+
 
 load bay;
 nu = 0.01;
 
 for k=1:length(ff),
     [ik,jk,sk] = fvm(ff(k,:),vv(ff(k,:),1:2),[u(k), v(k)], vv(ff(k,:),3));
-    ii = [ii; ik];
+    ii = [ii; ik]; % append
     jj = [jj; jk];
     ss = [ss; sk];
 end;

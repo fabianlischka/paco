@@ -3,6 +3,92 @@
 
 ## Overview
 
+This code solves an optimal control problem, where we would like to minimise
+the deviation of some state trajectory y(t) from a target trajectory y^hat(t),
+and the deviation of the final state y(T) from a target state y^hat_T, by
+controlling a function u(t) that influences y(t) via the relationship
+```
+y_t + Ay = Bu + f
+```
+
+### Motivating Question
+
+Imagine we have a flowing river. Now we inject some color into it, and we are
+interested in how the color flows. In particular, we would like it to be in a
+certain place at a certain time. When and where do we have to drop the color to
+have it as close to the target as possible?
+
+### Motivating Example: Details
+
+We start with an incompressible fluid flow in some 2d geometry, in steady state,
+which can be be described by the Stokes equation
+
+laplacian(U) = grad(p)
+div(U) = 0
+
+where U =(u(x,y), v(x,y)) is the fluid velocity (a vector field),
+and p =p(x,y) is its pressure (a scalar field).
+
+We then solve the advection-diffusion equation
+
+c_t = laplacian(c) - U . grad(c) + R
+
+choosing R to minimise the deviation of c.
+
+### Quick reminder of vector notations
+
+* gradient of a scalar field s is a vector: (ds/dx, ds/dy, ...)
+* divergence of a vector field F=(F1,F2,...) is a scalar: dF1/dx + dF2/dy + ...
+* laplacian of a scalar field s is a scalar, namely the divergence of the gradient,
+akin to the "curvature". Heat equation (diffusion): ds/dt = c laplacian(s)
+* (vector) laplacian of a vector field F is (in cartesian coord's) the vector
+of the laplacians of the components of F, laplacian(F) = (laplacian(F1), laplacian(F2), ...)
+* product rule: div(sF) = grad(s) . F + s div(F), a scalar
+
+### Formulation
+
+Given f=f(t), with t in (0,T), and matrices A, B,
+and y=y(t) (with time derivative y_t = del y/del t), determined by the constraints
+
+(1a) y_t + Ay = Bu + f
+(1b) y(0) = y0
+
+and parameters a, b, and matrices C, D and target state y^hat = y^hat(t) and y^hat_T,
+this code finds an optimal control u=u(t) with t in (0,T) such that the objective
+functional F(u) is minimised, where
+
+(2) F(u) = 1/2 int_0^T |u(t)|^2 dt + a/2 int_0^T |Cy-y^hat|^2 dt + b|Dy(T)-y^hat_T|^2
+
+See F Kwok: "On the Time-domain Decomposition of Parabolic Optimal Control Problems"
+in Section "Background" below for details.
+
+### Inputs/Outputs
+
+A, B, C, D, a, b, y0, y^hat(t), y^hat_T
+
+* stokes.edp
+  * reads: nothing
+  * writes:
+    * u.txt, v.txt, mass.txt, stiff.txt, Rih.txt
+    * stokes.msh (mesh)
+    * bay_flux.ps (plot)
+* control_main.c
+  * reads:
+    * params.txt for beta, Nt, a1, a2, q, pp, qq, max_iter, tol, krylov
+    * A.txt, B.txt, C.txt, D.txt
+    * yhat.txt
+  * writes:
+    * sol.txt
+    * yy.txt (trajectory)
+* control_main_full.c
+  * similar to control_main.c, but yhat is computed, not read, and yy.txt is not written
+* dd_main.c
+  * reads:
+    * like control_main.c: params, A,B,C,D, yhat
+    * existing sol.txt
+  * writes:
+    * nothing, just outputs the error vis-a-vis the control
+
 ## List of files
 
 Notes
@@ -15,27 +101,27 @@ Notes
 
 
 Length | Name | Comment
------: | ---- |
-       | examples | Directory of examples
+-----: | ---- | -------
+     . | examples | directory of examples
   1902 | control.h |
-  3556 | control_main.c |
-  3411 | control_main_full.c |
-  4448 | control_test.c |
- 12402 | dd_gmres.c |
- 12396 | dd_gmres_full.c |
-  6816 | dd_main.c |
-  7090 | dd_main_full.c |
-  8776 | IO.c |
+  3556 | control_main.c | run this for single-node
+  3411 | control_main_full.c | idem, for full variant
+  4448 | control_test.c | don't solve, just check inputs
+ 12402 | dd_gmres.c | run this for multi-node GMRES
+ 12396 | dd_gmres_full.c | idem, for full variant
+  6816 | dd_main.c | run this for multi-node iterative
+  7090 | dd_main_full.c | idem, for full variant
+  8776 | IO.c | helper routines for reading variables and params
   1605 | Makefile |
    201 | minitest.c |
- 14144 | Problem.c |
-   731 | read_parallel.c |
-  1480 | Solver.c |
-  7930 | test.pbs |
+ 14144 | Problem.c | wrapper containing problem variables, params, and solver
+   731 | read_parallel.c | util to test file availability on nodes
+  1480 | Solver.c | solver for the inner problem
+  7930 | test.pbs | batch file for parallel run
 
 ## Useful links
 
-### Theory
+### Background
 
 * M Gander, F Kwok: "Schwarz Methods for the Time-Parallel Solution of Parabolic Control Problems" [PDF](http://www.math.hkbu.edu.hk/~felix_kwok/docs/Kwok-Felix-Gander-Martin_J.-276.pdf)
 * F Kwok: "On the Time-domain Decomposition of Parabolic Optimal Control Problems" [PDF](http://www.math.hkbu.edu.hk/~felix_kwok/docs/kwok_plenary.pdf)
@@ -64,23 +150,33 @@ to MPI, including application to Domain Decomposition
 
 ### Windows
 
+If you're developing on a windows box, here is some software you can quickly
+install to make life easier, and put a virtual machine with CentOS in place,
+so you can test stuff locally before going onto the sciblade cluster.
+
 * install [Chocolatey](https://chocolatey.org/install), a Windows package manager
-* run (in a PowerShell, as administrator)
-  `choco install -y anaconda2 atom git putty rsync vagrant virtualbox`
+* install other required software: run (in a PowerShell, as administrator)
+  `choco install -y anaconda2 git rsync vagrant virtualbox`
     * obviously, skip software you have installed already or don't need
     * [Anaconda](https://www.continuum.io/anaconda-overview) is a modern
     Python distribution that contains a lot of scientific libraries,
     such as NumPy, SciPy, Jupyter, etc.
     We choose to download the version with Python 2, as Sciblade is on Python 2.
-    * [Atom](https://atom.io/) is a modern, extensible editor
     * [git](https://git-scm.com/) is a modern, distributed version control system
-    * [PuTTY](http://www.putty.org/) is a Telnet/SSH client for Windows
     * rsync, required for Vagrant to work
     * [Vagrant](https://www.vagrantup.com/) allows very simple management of virtual machines
     * [VirtualBox]() is the VM "provider" used by Vagrant
       * Note: Vagrant will install VirtualBox by itself, if not installed, but
       it installs a version (5.0.10) that crashes on my Windows 10, so it's
       easiest to just install the latest version with choco.
+* install some other useful software as desired: run (in a PowerShell, as administrator)
+  `choco install -y atom kdiff3 putty winscp`
+    * obviously, skip software you have installed already or don't need
+    * [Atom](https://atom.io/) is a free, modern, extensible editor
+    * [KDiff3](http://kdiff3.sourceforge.net/) highlights differences between
+    (up to 3) text files
+    * [PuTTY](http://www.putty.org/) is a free Telnet/SSH client for Windows
+    * [WinSCP](https://winscp.net/eng/index.php) is a free SFTP, SCP and FTP client for Windows
 
 ### virtual CentOS box
 
