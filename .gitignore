@@ -3,6 +3,8 @@
 old/
 # generated postscript
 *.ps
+# matlab cache?
+*.asv
 
 # C related stuff
 
