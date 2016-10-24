@@ -70,7 +70,7 @@ A, B, C, D, a, b, y0, y^hat(t), y^hat_T
   * reads: nothing
   * writes:
     * u.txt, v.txt, mass.txt, stiff.txt, Rih.txt
-    * stokes.msh (mesh)
+    * stokes.msh (mesh, see [Section 5.1.4 "Data Structures and Read/Write Statements for a Mesh"](http://www.freefem.org/ff++/ftp/freefem++doc.pdf#subsection.5.1.4) for format)
     * bay_flux.ps (plot)
 * control_main.c
   * reads:

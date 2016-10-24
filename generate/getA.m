@@ -21,8 +21,8 @@ ss = [];
 
 
 
-# vv = vertices
-# ff = faces
+# vv = vertices: coordx, coordy, type
+# ff = faces: vertex1, vertex2, vertex3
 % geometry, comes from stokes.msh
 
 
