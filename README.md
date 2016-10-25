@@ -35,6 +35,10 @@ c_t = laplacian(c) - U . grad(c) + R
 
 choosing R to minimise the deviation of c.
 
+Note that FreeFem++ uses the weak formulation of the problem, ie multiply with
+a test function (nice and continuous etc., compact support), and integrate by
+parts over infinity = the support.
+
 ### Quick reminder of vector notations
 
 * gradient of a scalar field s is a vector: (ds/dx, ds/dy, ...)
@@ -216,21 +220,32 @@ on Sciblade (as of 2016-10-14).
       ```
       that is, add `/cygdrive` in front of the path. See [issue #3230](https://github.com/mitchellh/vagrant/issues/3230) for more.
 
-
+### HKBU SciBlade specific
 
 * connect to sciblade with `ssh lischka@sciblade.sci.hkbu.edu.hk` or on Windows
 after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
-
+* Directories:
+  * data in `/u1/local/share/felix_grp`
+  * FreeFem++ in `/u1/local/ff++`
+* ` /u1/local/ff++/bin/FreeFem++-nw stokes.edp`
 
 ### Workflow (old way, for reference)
 
 0. set up stokes.edp as desired.
 1. run `FreeFem++-nw stokes.edp`
   * now have files:
-      * bay_flux.ps, stokes.msh (can be ignored)
+      * bay_flux.ps, stokes.msh
       * mass.txt,  Rih.txt,  stiff.txt, u.txt, v.txt
-2. compute matrices A.txt and B.txt, and (hardcoded) C.txt, D.txt
-    * pull these into Matlab, generate bay.mat
+2. extract matrices
+  * mangle manually, in Matlab:
+    * ff, vv from stokes.msh
+    * u, v from u.txt, v.txt
+    * mi, mj, ms from mass.txt
+    * ki, kj, ks from stiff.txt
+    * bi, bj, bs from Rih.txt
+  * store in, say, bay.mat
+3. compute matrices A.txt and B.txt, and (hardcoded) C.txt, D.txt
+    * using bay.mat:
     * run getA.m, which uses bay.ff, bay.vv, bay.u, bay.v for fvm.m,
       then also bay.mi, bay.mj, bay.ms to compute M, M2,
       then also bay.ki, bay.kj, bay.ks to compute K
