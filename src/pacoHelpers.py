@@ -204,26 +204,29 @@ def write_csr_matrix(A, f):
     """
     m, n = A.shape
     logging.debug("write (%s x %s) matrix in CSR format...", m, n)
-    f.write('{}\n'.format(m))
-    f.write('{}\n'.format(n))
-
+    f.write('%d\n' % m)
+    f.write('%d\n' % n)
     counter = 0
     for i in range(m):
-        f.write('{}\n'.format( counter ))
+        f.write('%d\n' % counter )
     #    counter = counter + nnz(A(i,:));
         counter += len( A[i].nonzero()[0] )
-    f.write('{}\n'.format( counter ))
+    f.write('%d\n' % counter )
 
     counter = 0
     for i in range(m):
         for k in A[i].nonzero()[0]:
     #        fprintf(fid,'%d\n',k-1)
-            f.write('{}\n'.format( k ))
+            f.write('%d\n' % k )
 
     for i in range(m):
         for k in A[i].nonzero()[0]:
     #         fprintf(fid,'%.16e\n',full(A(i,k)));
-            f.write('{}\n'.format( A[i,k] ))
+            f.write('%r\n' % A[i,k] )
+            # note: use %r = repr() to reduce rounding errors
+            #  %s or str() outputs fewer digits
+            #  in particular, float(str(x)) might not be == x
+            #  while float(repr(x)) == x, AFAIK
     logging.info("successfully wrote (%s x %s) matrix in CSR format.", m, n)
 
 def read_csr_matrix(f):
