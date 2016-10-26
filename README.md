@@ -1,6 +1,8 @@
 # PACO
 ======
 
+On [Github](https://github.com/fabianlischka/paco/).
+
 ## Overview
 
 This code solves an optimal control problem, where we would like to minimise
