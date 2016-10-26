@@ -40,7 +40,13 @@ def readVectFF(f):
     return arr
 
 def createDenseFromIJX(iijjxx, M = -1, N = -1, issym = False, ij_onebased = True):
-    """Creates a dense matrix from (nnz x 3) array with i, j, x
+    """Creates a dense matrix S from (nnz x 3) array with i, j, x. Returns ndarray.
+
+    If M, N are provided, they specify size of S as m-by-n.
+    Note: Elements in v that have duplicate coordinates in i,j are *added*.
+    If issym, for given (i,j), transposed (j,i) value is also set.
+    If ij_onebased, an offset of 1 is subtracted from i, j before placing into
+    the (zero-based) ndarray.
     """
     # populate matrix
     if M == -1:
@@ -54,9 +60,9 @@ def createDenseFromIJX(iijjxx, M = -1, N = -1, issym = False, ij_onebased = True
     res = np.zeros((M,N))
     for ifloat, jfloat, x in iijjxx:
         i, j = int(ifloat) - offset, int(jfloat) - offset  # python is 0-based
-        res[i,j] = x
+        res[i,j] += x
         if issym:
-            res[j,i] = x
+            res[j,i] += x
     return res
 
 def readSparseFF(f):
