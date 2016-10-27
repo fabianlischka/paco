@@ -2,6 +2,7 @@
 ======
 
 On [Github](https://github.com/fabianlischka/paco/).
+Original code (C, Matlab) written by [Felix Kwok](http://www.math.hkbu.edu.hk/~felix_kwok/), see papers below.
 
 ## Overview
 
@@ -12,6 +13,13 @@ controlling a function u(t) that influences y(t) via the relationship
 ```
 y_t + Ay = Bu + f
 ```
+
+In addition to this governing PDE (and initial condition) going forward in time,
+the optimal solution satisfies an adjoint PDE (and final condition) going backward
+in time, leading to a two-point boundary problem.
+
+The code here employs time domain decomposition to solve this problem in parallel.
+(Thus: **Pa** rallel Optimal **Co** ntrol.)
 
 ### Motivating Question
 
