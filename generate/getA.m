@@ -17,20 +17,18 @@
 % [ik,jk,sk] = fvm( ff(k,:), vv(ff(k,:),1:2), [u(k), v(k)], vv(ff(k,:),3) );
 %                   -> vv    -> q             -> u          -> where
 
-ii = [];
-jj = [];
-ss = [];
-
-
-
 % vv = vertices: coordx, coordy, type
 % ff = faces: vertex1, vertex2, vertex3
 % geometry, comes from stokes.msh
 
-
-
-load bay;
+load bay;  % NOTE: if you load bay AFTER setting ii=[], ii will be doubled
+           % by running the script, leading to an A that is twice what it
+           % should be
 nu = 0.01;
+
+ii = [];   % see NOTE above
+jj = [];
+ss = [];
 
 for k=1:length(ff),
     [ik,jk,sk] = fvm(ff(k,:),vv(ff(k,:),1:2),[u(k), v(k)], vv(ff(k,:),3));
@@ -39,11 +37,11 @@ for k=1:length(ff),
     ss = [ss; sk];
 end;
 
-A = sparse(ii,jj,ss,size(vv,1),size(vv,1),size(ii,1));   % A
+A = sparse(ii,jj,ss,size(vv,1),size(vv,1),size(ii,1));   % Anom
 M = sparse(mi,mj,ms,size(vv,1),size(vv,1));              % 
 M2 = spdiags(sqrt(diag(M)),0,size(vv,1),size(vv,1));     % 
 K = sparse(ki,kj,ks,size(vv,1),size(vv,1));              % 
-B = sparse(bj,bi,ones(length(bi),1),size(vv,1),max(bi)); % B
+B = sparse(bj,bi,ones(length(bi),1),size(vv,1),max(bi)); % Bnom
 
 %%
 AA = A + nu * K;
