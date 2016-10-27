@@ -3,8 +3,10 @@ import numpy as np
 import os
 import os.path
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s. %(levelname)s in %(funcName)s: %(message)s')
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s. %(levelname)s in %(funcName)s: %(message)s')
 
 
 def readVectFF(f):
@@ -164,7 +166,9 @@ def readMeshFF(f):
         ee[ei] = v1, v2, l_b
 
     logging.info(
-        "successfully read mesh from FF with %s vertices, %s triangles, %s edges.", v, t, e)
+        "successfully read mesh from FF with %s vertices, %s triangles, %s edges.",
+        v, t, e)
+
     return (vv, tt, ee)
 
 
@@ -194,24 +198,24 @@ def fvm(vv, q, u, where):  # finite volume method
     for i in range(3):  # python 0-based unlike matlab...
         ip = (i + 1) % 3
         ipp = (ip + 1) % 3
-        unL = -((q[ip, 1] + q[i, 1] - 2 * q[ipp, 1]) * u[0]
-                - (q[ip, 0] + q[i, 0] - 2 * q[ipp, 0]) * u[1]) / 6
-        ii[count],   ss[count] = vv[i],   unL
+        unL = -( (q[ip, 1] + q[i, 1] - 2 * q[ipp, 1]) * u[0]
+                -(q[ip, 0] + q[i, 0] - 2 * q[ipp, 0]) * u[1]) / 6
+        ii[count],     ss[count]     = vv[i],   unL
         ii[count + 1], ss[count + 1] = vv[ip], -unL
         if unL > 0:
-            jj[count] = vv[i]
+            jj[count]     = vv[i]
             jj[count + 1] = vv[i]
         else:
-            jj[count] = vv[ip]
+            jj[count]     = vv[ip]
             jj[count + 1] = vv[ip]
         count += 2
         if where[i] != 0 and where[ip] != 0:
-            unL = +((q[ip, 1] - q[i, 1]) * u[0]
-                    - (q[ip, 0] - q[i, 0]) * u[1]) / 2
+            unL = +( (q[ip, 1] - q[i, 1]) * u[0]
+                    -(q[ip, 0] - q[i, 0]) * u[1]) / 2
             if unL > 0:
-                ii[count],   ss[count] = vv[i], unL
+                ii[count],     ss[count]     = vv[i], unL
                 ii[count + 1], ss[count + 1] = vv[i], unL
-                jj[count] = vv[i]
+                jj[count]     = vv[i]
                 jj[count + 1] = vv[i]
                 count += 2
     return ii, jj, ss
@@ -306,8 +310,9 @@ def read_csr_matrix(f):
         for nzi in range(rowPointers[i], rowPointers[i + 1]):
             res[i, colIndices[nzi]] = values[nzi]
 
-    logging.info("successfully read (%s x %s) matrix in CSR format with nnz %s.",
-                 m, n, nnz)
+    logging.info(
+        "successfully read (%s x %s) matrix in CSR format with nnz %s.",
+        m, n, nnz)
     return res
 
 
@@ -349,35 +354,32 @@ def getAB(mm, kk, bb, u, v, vv, ff, nu):
         jj[12 * k: 12 * k + 12] = jk
         ss[12 * k: 12 * k + 12] = sk
 
-    # orig: A = sparse(ii,jj,ss,size(vv,1),size(vv,1),size(ii,1));   % A  Nv x
-    # Nv
-    A = createDenseFromIJX(zip(ii, jj, ss), M=N_v, N=N_v, ij_onebased=False)
+    # orig: A = sparse(ii,jj,ss,size(vv,1),size(vv,1),size(ii,1));  %    Nv x Nv
+    # Note: we call it _ns here, not scaled by M yet
+    A_ns = createDenseFromIJX(zip(ii, jj, ss), M=N_v, N=N_v, ij_onebased=False)
 
-    # orig: M = sparse(mi,mj,ms,size(vv,1),size(vv,1));              %    Nv x Nv
-    # orig: M2 = spdiags(sqrt(diag(M)),0,size(vv,1),size(vv,1));     %    Nv x Nv
-    # M2 = np.diagflat(np.sqrt(np.diag(M)))                          # not
-    # needed here
+    # orig: M = sparse(mi,mj,ms,size(vv,1),size(vv,1));             %    Nv x Nv
+    # orig: M2 = spdiags(sqrt(diag(M)),0,size(vv,1),size(vv,1));    %    Nv x Nv
+    # M2 = np.diagflat(np.sqrt(np.diag(M)))                    # not needed here
     M2di = 1 / np.sqrt(np.diag(mm))  # vector of diagonal, sqrt, inverted
 
-    # orig: K = sparse(ki,kj,ks,size(vv,1),size(vv,1));              %    Nv x
-    # Nv
+    # orig: K = sparse(ki,kj,ks,size(vv,1),size(vv,1));             %    Nv x Nv
     K = kk
 
-    # orig: B = sparse(bj,bi,ones(length(bi),1),size(vv,1),max(bi)); % B  Nv x Nb
-    # create the normal way, then transpose. Note: checked that all nz == 1
-    # above.
-    Bt = bb
-    B = Bt.transpose()
+    # orig: B = sparse(bj,bi,ones(length(bi),1),size(vv,1),max(bi)); %   Nv x Nb
+    # create the normal way, then transpose.
+    # Note: checked that all nz == 1 above.
+    B_ns = bb.transpose()
 
     # orig: AA = A + nu * K;
-    AA = A + nu * K
+    AA = A_ns + nu * K
     # Am = M2\AA/M2;  % this is A
-    Am = M2di * AA * M2di.reshape(-1, 1)
+    A = M2di * AA * M2di.reshape(-1, 1)
 
     # Bm = M2\B;      % this is B
-    Bm = B * M2di.reshape(-1, 1)  # multiply the rows
+    B = B_ns * M2di.reshape(-1, 1)  # multiply the rows
 
-    return Am, Bm
+    return A, B
 
 
 def writeABC(A, B, C, D, destPath=""):
@@ -401,7 +403,7 @@ def ensurePath(path):
 
 
 def runMangle(sourcePath="..\\run1\\", destPath=None, nu=0.01):
-    if destPath == None:
+    if destPath is None:
         destPath = os.path.join(sourcePath, "data")
     # read intermediate output from FF
     mm = with_file(os.path.join(sourcePath, 'mass.txt'), readSparseFF)
