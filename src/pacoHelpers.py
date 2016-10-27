@@ -299,17 +299,6 @@ def read_csr_matrix(f):
     return res
 
 
-    counter = 0
-    for i in range(m):
-        for k in A[i].nonzero()[0]:
-    #        fprintf(fid,'%d\n',k-1)
-            f.write('{}\n'.format( k ))
-
-    for i in range(m):
-        for k in A[i].nonzero()[0]:
-    #         fprintf(fid,'%.16e\n',full(A(i,k)));
-            f.write('{}\n'.format( A[i,k] ))
-
 def getAB(mm, kk, bb, u, v, vv, ff, nu):
     """
     Mangles stuff to produce A, B, using the finite volume method.
