@@ -78,30 +78,48 @@ in Section "Background" below for details.
 
 ### Inputs/Outputs
 
-A, B, C, D, a, b, y0, y^hat(t), y^hat_T
+* The problem as outlined above needs, as inputs:
+  * A, B, C, D, a, b, y0, y^hat(t), y^hat_T
 
-* stokes.edp
-  * reads: nothing
-  * writes:
+The full run proceeds in 3 stages (FreeFem, Python/Matlab, C code).
+Stage n takes the inputs/data from stage n-1 to stage n.
+
+1. Stage 1: FreeFem++
+  * reads: prefix + 's0_' + **stokes.edp**
+  * writes: prefix + 's1_' +
     * u.txt, v.txt, mass.txt, stiff.txt, Rih.txt
     * stokes.msh (mesh, see [Section 5.1.4 "Data Structures and Read/Write Statements for a Mesh"](http://www.freefem.org/ff++/ftp/freefem++doc.pdf#subsection.5.1.4) for format)
     * bay_flux.ps (plot)
-* control_main.c
-  * reads:
-    * params.txt for beta, Nt, a1, a2, q, pp, qq, max_iter, tol, krylov
+1. Stage 2: Python (previously: Matlab)
+  * reads: prefix + 's1_' +
+    * u.txt, v.txt, mass.txt, stiff.txt, Rih.txt
+    * stokes.msh
+  * writes: prefix + 's2_' +
     * A.txt, B.txt, C.txt, D.txt
-    * yhat.txt
-  * writes:
-    * sol.txt
-    * yy.txt (trajectory)
-* control_main_full.c
-  * similar to control_main.c, but yhat is computed, not read, and yy.txt is not written
-* dd_main.c
-  * reads:
-    * like control_main.c: params, A,B,C,D, yhat
-    * existing sol.txt
-  * writes:
-    * nothing, just outputs the error vis-a-vis the control
+2. Stage 3: C code
+  * control_main.c
+    * reads: prefix + 's2_' +
+      * A.txt, B.txt, C.txt, D.txt
+      * params.txt (for beta, Nt, a1, a2, q, pp, qq, max_iter, tol, krylov
+      * yhat.txt
+    * writes: prefix + 's3_'
+      * sol.txt
+      * yy.txt (trajectory)
+  * control_main_full.c
+    * similar to control_main.c, but yhat is computed, not read, and yy.txt is not written
+  * dd_main.c
+    * reads:
+      * like control_main.c
+      * existing sol.txt
+    * writes:
+      * nothing, just outputs the error vis-a-vis the control
+
+## Installation
+
+### Prerequisites
+
+  * Python 2, with numpy
+  * FreeFem++ (see installation notes below)
 
 ## List of files
 
@@ -205,8 +223,8 @@ on Sciblade (as of 2016-10-14).
       log onto the VM using `vagrant ssh` and run
       ```
       sudo yum update
-      sudo yum install dkms epel-release kernel-devel
-      sudo yum groupinstall 'Development Tools'
+      sudo yum install -y dkms epel-release kernel-devel numpy.x86_64
+      sudo yum groupinstall -y 'Development Tools'
       sudo mkdir /mnt/cdrom
       sudo mount /dev/sr0 /mnt/cdrom
       cd /mnt/cdrom
@@ -261,9 +279,9 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
       then also bay.ki, bay.kj, bay.ks to compute K
       then also bay.bj, bay.bi, ones to compute A,
       then Am (diagonal trans) and Bm
-    * these are written out, manually, to A.txt and B.txt
+    * these are written out, manually, with write_csr_matrix.m, to A.txt and B.txt
     * C.txt and D.txt are hardcoded
-3. run control_main, dd_main, or dd_gmres
+3. run (on the cluster) control_main, dd_main, or dd_gmres
 
 
 ### Notes: Installation of FreeFem++

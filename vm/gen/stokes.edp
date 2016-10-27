@@ -1,3 +1,22 @@
+// outputPrefix + "s1_" is prefixed to all output file names
+// outputPrefix defaults to "pre_"
+// if extra argument is passed after the name of the edp file, use that
+// if name of the edp file contains "s0_", use whatever is before that as prefix
+
+string outputPrefix = "pre_";
+if( ARGV.n > 2 )
+{
+  outputPrefix = ARGV[2];
+}
+else if( ARGV[1].find("s0_") >= 0 )
+{
+  outputPrefix = ARGV[1]( 0 : (ARGV[1].find("s0_")-1) );
+}
+outputPrefix = outputPrefix + "s1_";
+
+cout << "PREFIX:>" << outputPrefix << "<" << endl;
+
+
 //int n=3;
 //mesh Th=square(10*n,10*n);
 
@@ -24,7 +43,7 @@ int2d(Th)(dx(u)*dx(uu)+dy(u)*dy(uu) + dx(v)*dx(vv)+ dy(v)*dy(vv)
 + dx(p)*uu + dy(p)*vv + pp*(dx(u)+dy(v))
 - 1e-10*p*pp) + int1d(Th,1)((2*x*u+v)*pp)
 + on(inlet, v=g);
-plot([u,v],wait=1,value=1,ps="bay_flux.ps");
+plot([u,v],wait=1,value=1,ps=outputPrefix+"bay_flux.ps");
 
 fespace P0h(Th,P0);
 P0h u0, v0;
@@ -33,12 +52,12 @@ u0 = u;
 v0 = v;
 
 {
-  ofstream f("u.txt");
+  ofstream f(outputPrefix+"u.txt");
   f << u0[] << endl;
 }
 
 {
-  ofstream f("v.txt");
+  ofstream f(outputPrefix+"v.txt");
   f << v0[] << endl;
 }
 
@@ -52,17 +71,17 @@ matrix stiffmat = stiff(P1h,P1h);
 int i;
 
 {
-  ofstream f("mass.txt");
+  ofstream f(outputPrefix+"mass.txt");
   f << massmat << endl;
 }
 
 
 {
-  ofstream f("stiff.txt");
+  ofstream f(outputPrefix+"stiff.txt");
   f << stiffmat << endl;
 }
 
-savemesh(Th,"stokes.msh");
+savemesh(Th,outputPrefix+"stokes.msh");
 
 P1h suppi = x^2 + (y-0.5)^2 < 0.01;
 mesh Thi = Th;
@@ -75,4 +94,3 @@ Rih = interpolate(Vhi, Ph, inside=1);
   ofstream f("Rih.txt");
   f << Rih << endl;
 }
-
