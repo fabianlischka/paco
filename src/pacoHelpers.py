@@ -166,6 +166,14 @@ def with_file(filename, callback):
         return callback(f)
 
 def fvm(vv,q,u,where): # finite volume method
+    """Finite volume method.
+
+    Inputs:
+    vv: int,       3. Vertices defining this face: v1, v2, v3. Zero-based (!)
+    q : float, 3 x 2. For each of those vertices, x and y coord
+    u : float,     2. Flow. x and y coord
+    where: float   3. Vertice label (should be int)
+    """
     ii = np.zeros(12, dtype = int)
     jj = np.zeros(12, dtype = int)
     ss = np.zeros(12)
@@ -305,6 +313,16 @@ def read_csr_matrix(f):
 def getAB(mm, kk, bb, u, v, vv, ff, nu):
     """
     Mangles stuff to produce A, B, using the finite volume method.
+
+    Inputs:
+    mm, float, N_v x N_v. Diagonal. Mass.
+    kk, float, N_v x N_v. Stiffness
+    bb, float, N_b x N_v. Rih
+    u,  float, N_f x   1. Flow (x-coord)
+    v,  float, N_f x   1. Flow (y-coord)
+    vv, float, N_v x   3. Vertices: x, y, label
+    ff, int,   N_f x   4. Faces: v1, v2, v3, label. NOTE: 1-based
+    nu, float,   1 x   1.
     """
     # check that non-zero values in bb are all 1
     if np.any(bb[bb.nonzero()] != 1):
@@ -321,16 +339,16 @@ def getAB(mm, kk, bb, u, v, vv, ff, nu):
     jj = np.empty(12*N_f, dtype = int)
     ss = np.empty(12*N_f)
 
-    for k in range(N_f):
+    for k in range(N_f): # for each face
         # [ik,jk,sk] = fvm(ff(k,:),vv(ff(k,:),1:2),[u(k), v(k)], vv(ff(k,:),3));
-        ff_idx = ff[k,0:3] - 1  # python is zero-based
+        ff_idx = ff[k,0:3] - 1  # python is zero-based, -1 to index into vv
         ik, jk, sk = fvm( ff_idx, vv[ ff_idx, 0:2], [u[k], v[k]], vv[ ff_idx, 2] )
         ii[12*k : 12*k+12] = ik
         jj[12*k : 12*k+12] = jk
         ss[12*k : 12*k+12] = sk
 
     # orig: A = sparse(ii,jj,ss,size(vv,1),size(vv,1),size(ii,1));   % A  Nv x Nv
-    A = createDenseFromIJX(zip(ii,jj,ss), M = N_v, N = N_v, ij_onebased = True)
+    A = createDenseFromIJX(zip(ii,jj,ss), M = N_v, N = N_v, ij_onebased = False)
 
     # orig: M = sparse(mi,mj,ms,size(vv,1),size(vv,1));              %    Nv x Nv
     # orig: M2 = spdiags(sqrt(diag(M)),0,size(vv,1),size(vv,1));     %    Nv x Nv
