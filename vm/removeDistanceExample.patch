@@ -1,0 +1,58 @@
+--- Makefile.in	2016-10-25 10:39:12.000000000 +0000
++++ Makefile-patched.in	2016-10-31 08:16:54.626173894 +0000
+@@ -636,8 +636,7 @@
+ 	testFEMorley.edp tetgencube.edp tetgenholeregion_rugby.edp \
+ 	thresholdings.edp ttestio.edp bfstream.edp \
+ 	bilapP3-hct-like.edp ClosePoints.edp cube.edp bilapHCT.edp \
+-	testFEHCT.edp Stokes-surface-tension-axi.edp Element_QF.edp \
+-	distance.edp distance2.edp distance3.edp
++	testFEHCT.edp Stokes-surface-tension-axi.edp Element_QF.edp
+ # all test can fail must but clean ????  FH... 
+ XFAIL_TESTS = $(TESTS)
+ LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver-ff
+@@ -689,7 +688,7 @@
+  iohd5-beam-2d.edp	iohd5-beam-3d.edp ff-AiryBiry.cpp \
+  exactpartition.cpp	exactpartition.edp \
+  ClosePoints.cpp aniso.cpp Element_HCT.cpp Curvature.cpp waveguide.edp waveguide2.edp Element_P1bl.cpp \
+- Element_QF.cpp distance.edp	distance2.edp	distance3.edp g.gmesh distance.cpp
++ Element_QF.cpp g.gmesh 
+ 
+ LIST_COMPILE = myfunction.$(DYLIB_SUFFIX)  BernadiRaugel.$(DYLIB_SUFFIX) \
+          Morley.$(DYLIB_SUFFIX) funcTemplate.$(DYLIB_SUFFIX) addNewType.$(DYLIB_SUFFIX) \
+@@ -713,7 +712,7 @@
+ 	bfstream.$(DYLIB_SUFFIX) @TOOL_DYLIB_iohdf5@ ff-AiryBiry.$(DYLIB_SUFFIX) \
+ 	exactpartition.$(DYLIB_SUFFIX)  ClosePoints.$(DYLIB_SUFFIX)  \
+ 	Element_HCT.$(DYLIB_SUFFIX) Curvature.$(DYLIB_SUFFIX) Element_P1bl.$(DYLIB_SUFFIX) \
+-	Element_QF.$(DYLIB_SUFFIX) distance.$(DYLIB_SUFFIX)
++	Element_QF.$(DYLIB_SUFFIX) 
+ 
+ 
+ # FFCS - some libraries are skipped because the corresponding tool is deactivated.
+@@ -1598,27 +1597,6 @@
+ 	--log-file $$b.log --trs-file $$b.trs \
+ 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+ 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+-distance.edp.log: distance.edp
+-	@p='distance.edp'; \
+-	b='distance.edp'; \
+-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+-	--log-file $$b.log --trs-file $$b.trs \
+-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+-	"$$tst" $(AM_TESTS_FD_REDIRECT)
+-distance2.edp.log: distance2.edp
+-	@p='distance2.edp'; \
+-	b='distance2.edp'; \
+-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+-	--log-file $$b.log --trs-file $$b.trs \
+-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+-	"$$tst" $(AM_TESTS_FD_REDIRECT)
+-distance3.edp.log: distance3.edp
+-	@p='distance3.edp'; \
+-	b='distance3.edp'; \
+-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+-	--log-file $$b.log --trs-file $$b.trs \
+-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+-	"$$tst" $(AM_TESTS_FD_REDIRECT)
+ .test.log:
+ 	@p='$<'; \
+ 	$(am__set_b); \

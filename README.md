@@ -157,7 +157,7 @@ Length | Name | Comment
 
 * M Gander, F Kwok: "Schwarz Methods for the Time-Parallel Solution of Parabolic Control Problems" [PDF](http://www.math.hkbu.edu.hk/~felix_kwok/docs/Kwok-Felix-Gander-Martin_J.-276.pdf)
 * F Kwok: "On the Time-domain Decomposition of Parabolic Optimal Control Problems" [PDF](http://www.math.hkbu.edu.hk/~felix_kwok/docs/kwok_plenary.pdf)
-* M Gander, F Kwok, G Wanner: "History of constrained optimization" [PDF]http://www.math.hkbu.edu.hk/~felix_kwok/docs/GanderKwokWanner_OPTPDE.pdf)
+* M Gander, F Kwok, G Wanner: "History of constrained optimization" [PDF](http://www.math.hkbu.edu.hk/~felix_kwok/docs/GanderKwokWanner_OPTPDE.pdf)
 
 ### HK Baptist University
 * HKBU High Performance Cluster, Sciblade [FAQ](http://site.sci.hkbu.edu.hk/hpccc/sciblade/faq_sciblade.php) and
@@ -188,14 +188,13 @@ so you can test stuff locally before going onto the sciblade cluster.
 
 * install [Chocolatey](https://chocolatey.org/install), a Windows package manager
 * install other required software: run (in a PowerShell, as administrator)
-  `choco install -y anaconda2 git rsync vagrant virtualbox`
+  `choco install -y anaconda2 git vagrant virtualbox`
     * obviously, skip software you have installed already or don't need
     * [Anaconda](https://www.continuum.io/anaconda-overview) is a modern
     Python distribution that contains a lot of scientific libraries,
     such as NumPy, SciPy, Jupyter, etc.
     We choose to download the version with Python 2, as Sciblade is on Python 2.
     * [git](https://git-scm.com/) is a modern, distributed version control system
-    * rsync, required for Vagrant to work
     * [Vagrant](https://www.vagrantup.com/) allows very simple management of virtual machines
     * [VirtualBox]() is the VM "provider" used by Vagrant
       * Note: Vagrant will install VirtualBox by itself, if not installed, but
@@ -215,38 +214,12 @@ so you can test stuff locally before going onto the sciblade cluster.
 Create a virtual machine using CentOS 6, which is (basically) what's running
 on Sciblade (as of 2016-10-14).
 
-* create a CentOS box with  `vagrant init centos/6`, then start it with
-  `vagrant up`
-  * Note: might have to manually install the Guest Additions, see [here](https://www.virtualbox.org/manual/ch04.html)
-    * after putting `C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso`
-      into the optical drive in the virtual machine in the VirtualBox GUI,
-      log onto the VM using `vagrant ssh` and run
-      ```
-      sudo yum update
-      sudo yum install -y dkms epel-release kernel-devel numpy.x86_64
-      sudo yum groupinstall -y 'Development Tools'
-      sudo mkdir /mnt/cdrom
-      sudo mount /dev/sr0 /mnt/cdrom
-      cd /mnt/cdrom
-      sh ./VBoxLinuxAdditions.run
-      ```
-    * if upon `vagrant up`, rsync fails because of a wrong path (`/c/foo/bar` instead
-      of `C:/foo/bar`), you'll have to hack a vagrant ruby file,
-      `C:\HashiCorp\Vagrant\embedded\gems\gems\vagrant-1.8.6\plugins\synced_folders\rsync\helper.rb`, to replace
-      ```
-      if Vagrant::Util::Platform.windows?
-        # rsync for Windows expects cygwin style paths, always.
-        hostpath = Vagrant::Util::Platform.cygwin_path(hostpath)
-      end
-      ```
-      by
-      ```
-      if Vagrant::Util::Platform.windows?
-        # rsync for Windows expects cygwin style paths, always.
-        hostpath = "/cygdrive" + Vagrant::Util::Platform.cygwin_path(hostpath)
-      end
-      ```
-      that is, add `/cygdrive` in front of the path. See [issue #3230](https://github.com/mitchellh/vagrant/issues/3230) for more.
+* create a CentOS 6 box, see [release details](https://seven.centos.org/2016/10/updated-centos-vagrant-images-available-v1609-01/)
+  * go do the directory with Vagrantfile (should be `paco\vm`)
+  * add guest additions with `vagrant plugin install vagrant-vbguest`
+  * start it with `vagrant up`
+  * this will download the box, add the Virtualbox guest additions,
+    and provision it, including installation of numpy and FreeFem++
 
 ### HKBU SciBlade specific
 
@@ -284,7 +257,59 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
 3. run (on the cluster) control_main, dd_main, or dd_gmres
 
 
+
+
+# OBSOLETE (supserseded notes)
+
+## Vagrant
+
+### Guest Additions for virtualbox
+
+OBSOLETE - Instead, install [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest) with `vagrant plugin install vagrant-vbguest`
+
+* Note: might have to manually install the Guest Additions, see [here](https://www.virtualbox.org/manual/ch04.html)
+  * after putting `C:\Program Files\Oracle\VirtualBox\VBoxGuestAdditions.iso`
+    into the optical drive in the virtual machine in the VirtualBox GUI,
+    log onto the VM using `vagrant ssh` and run
+    ```
+    sudo yum update
+    sudo yum install -y dkms epel-release kernel-devel numpy.x86_64
+    sudo yum groupinstall -y 'Development Tools'
+    sudo mkdir /mnt/cdrom
+    sudo mount /dev/sr0 /mnt/cdrom
+    cd /mnt/cdrom
+    sh ./VBoxLinuxAdditions.run
+    ```
+
+
+### Rsync failure
+
+OBSOLETE - Instead, use "synched-folder" type `SMB` on Windows, or just `virtualbox`, by putting this in your Vagrantfile:
+`config.vm.synced_folder ".", "/vagrant", type: "virtualbox"`
+
+* if upon `vagrant up`, rsync fails because of a wrong path (`/c/foo/bar` instead
+  of `C:/foo/bar`), you'll have to hack a vagrant ruby file,
+  `C:\HashiCorp\Vagrant\embedded\gems\gems\vagrant-1.8.6\plugins\synced_folders\rsync\helper.rb`, to replace
+  ```
+  if Vagrant::Util::Platform.windows?
+    # rsync for Windows expects cygwin style paths, always.
+    hostpath = Vagrant::Util::Platform.cygwin_path(hostpath)
+  end
+  ```
+  by
+  ```
+  if Vagrant::Util::Platform.windows?
+    # rsync for Windows expects cygwin style paths, always.
+    hostpath = "/cygdrive" + Vagrant::Util::Platform.cygwin_path(hostpath)
+  end
+  ```
+  that is, add `/cygdrive` in front of the path. See [issue #3230](https://github.com/mitchellh/vagrant/issues/3230) for more.
+
+
 ### Notes: Installation of FreeFem++
+
+OBSOLETE: instead, use in `vm`, the `Vagrantfile`, with its link to `installFreeFem.sh` which does everything below, including patching the makefile
+using `removeDistanceExample.patch`
 
 * Installation on Linux [instructions here](http://www.freefem.org/ff++/linux.php)
 * Source available [here](http://www.freefem.org/ff++/ftp/freefem++-3.49.tar.gz),
