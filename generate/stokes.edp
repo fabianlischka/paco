@@ -14,8 +14,10 @@ else if( ARGV[1].find("s0_") >= 0 )
 }
 outputPrefix = outputPrefix + "s1_";
 
-cout << "PREFIX:>" << outputPrefix << "<" << endl;
-
+if(verbosity > 1)
+{
+  cout << "PREFIX:>" << outputPrefix << "<" << endl;
+}
 
 //int n=3;
 //mesh Th=square(10*n,10*n);
@@ -91,6 +93,6 @@ matrix Rih;
 Rih = interpolate(Vhi, Ph, inside=1);
 
 {
-  ofstream f("Rih.txt");
+  ofstream f(outputPrefix+"Rih.txt");
   f << Rih << endl;
 }
