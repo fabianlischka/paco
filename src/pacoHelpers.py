@@ -7,12 +7,8 @@ import shutil
 import subprocess
 
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s. %(levelname)s in %(funcName)s: %(message)s')
-
 # Config
-_extraPaths = ['/u1/local/ff++/bin']
+_extraPaths = ['/u1/local/ff++/bin', '/usr/local/bin']
 _searchPath = os.environ['PATH']
 _pathFF = None
 for extraPath in _extraPaths:
@@ -109,9 +105,9 @@ def readSparseFF(f):
 
     # strip comment header
     logging.debug("attempt to read FF sparse matrix...")
-    row = f.next().strip()
+    row = f.readline().strip()
     while row[0] == '#':
-        row = f.next().strip()
+        row = f.readline().strip()
     # read shape
     n, m, issym, nbcoef = map(int, row.split())
     logging.debug(
@@ -163,9 +159,9 @@ def readMeshFF(f):
     """
     logging.debug("attempt to read FF mesh...")
     # strip comment header
-    row = f.next().strip()
+    row = f.readline().strip()
     while row[0] == '#':
-        row = f.next().strip()
+        row = f.readline().strip()
     # read shape
     v, t, e = map(int, row.split())
     logging.debug(
@@ -406,7 +402,7 @@ def getAB(mm, kk, bb, u, v, vv, ff, nu):
     return A, B
 
 
-def writeABC(A, B, C, D, destPath="", prefix = ""):
+def writeABCD(A, B, C, D, destPath="", prefix = ""):
     ensurePath(destPath)
     fpre = prefix + "s2_"
     with open(os.path.join(destPath, fpre+"A.txt"), 'w') as f:
@@ -426,14 +422,6 @@ def ensurePath(path):
     except OSError:
         if not os.path.isdir(path):
             raise
-
-
-def dothisbeforerunningS1():
-    # if file exists (sourcePath) with ending edp, copy that...
-    pass
-    # else look for stokes.edp at sourcepath and copy that...
-    pass
-    # ... to prefix_s0
 
 
 def runS1(sourcePath=None, prefix=None, pathFF=None):
@@ -458,7 +446,7 @@ def runS1(sourcePath=None, prefix=None, pathFF=None):
 
     # if the file does not end with edp, warn
     fileExtension = os.path.splitext(sourcePath)[1]
-    if fileExtension != "edp":
+    if fileExtension != ".edp":
         logging.warn("stage 1: sourcePath does not end with .edp: %s", sourcePath)
 
     # if prefix given and stokes file does not start with prefix+"s0_", copy to there
@@ -466,10 +454,10 @@ def runS1(sourcePath=None, prefix=None, pathFF=None):
     if prefix is not None:
         fpre = prefix + "s0_"
         dirname, basename = os.path.split(sourcePath)
-        if bn.startswith(fpre):
+        if basename.startswith(fpre):
             pass # nothing to do
         else:
-            newBasename = fpre + bn
+            newBasename = fpre + basename
             oldSourcePath = sourcePath
             sourcePath = os.path.join(dirname, newBasename)
             # copy over
@@ -478,7 +466,11 @@ def runS1(sourcePath=None, prefix=None, pathFF=None):
 
     # execute FreeFem++-nw sp
     logging.info("Executing FreeFem++ at %s with file %s", pathFF, sourcePath)
-    subprocess.check_call([pathFF, sourcePath])
+    logLevelFF = 0
+    if logging.getLogger().getEffectiveLevel() < 20:
+        logLevelFF = 2
+
+    subprocess.check_call([pathFF, "-v", str(logLevelFF), sourcePath])
 
     # maybe check that expected files are there?
     pass

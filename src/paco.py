@@ -1,6 +1,9 @@
 #!/usr/bin/env python
+import logging
 import optparse
+import os.path
 import pacoHelpers
+
 
 def main():
     p = optparse.OptionParser(
@@ -16,12 +19,27 @@ def main():
         p.error("incorrect number of arguments")
 
     sourcePath = arguments[0]
-    print("Running S1, S2 on %s with prefix %s."
-            % (sourcePath, options.prefix) )
+    sourceDir = os.path.dirname(sourcePath)
+
+    logLevel = logging.WARNING
     if options.verbose:
-        pass
+        logLevel = logging.DEBUG
+
+    logging.basicConfig(
+            level=logLevel,
+            format='%(asctime)s. %(levelname)s in %(funcName)s: %(message)s')
+
     if options.destPath is not None:
         pass
+
+    logging.warn("Running S1 on %s with prefix %s."
+                    % (sourcePath, options.prefix))
+    pacoHelpers.runS1(sourcePath=sourcePath, prefix=options.prefix)
+    logging.warn("Running S2 on %s with prefix %s."
+                    % (sourceDir, options.prefix))
+    pacoHelpers.runS2(sourcePath=sourceDir, prefix=options.prefix)
+
+    logging.shutdown()
 
 if __name__ == '__main__':
     main()
