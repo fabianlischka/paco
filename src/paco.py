@@ -3,9 +3,10 @@ import optparse
 
 def main():
     p = optparse.OptionParser()
-    p.add_option('--person', '-p', default="world")
+    p.add_option('--sourcePath', '-s', default="..\\run1")
+    p.add_option('--destPath', '-d', default="..\\run1\\data")
     options, arguments = p.parse_args()
-    print 'Hello %s' % options.person
+    print 'Mangle from %s to %s' % (options.sourcePath, options.destPath)
 
 
 if __name__ == '__main__':

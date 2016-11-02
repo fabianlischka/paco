@@ -382,19 +382,21 @@ def getAB(mm, kk, bb, u, v, vv, ff, nu):
     return A, B
 
 
-def writeABC(A, B, C, D, destPath=""):
+def writeABC(A, B, C, D, destPath="", prefix = ""):
     ensurePath(destPath)
-    with open(os.path.join(destPath, "A.txt"), 'w') as f:
+    fpre = prefix + "s2_"
+    with open(os.path.join(destPath, fpre+"A.txt"), 'w') as f:
         write_csr_matrix(A, f)
-    with open(os.path.join(destPath, "B.txt"), 'w') as f:
+    with open(os.path.join(destPath, fpre+"B.txt"), 'w') as f:
         write_csr_matrix(B, f)
-    with open(os.path.join(destPath, "C.txt"), 'w') as f:
+    with open(os.path.join(destPath, fpre+"C.txt"), 'w') as f:
         write_csr_matrix(C, f)
-    with open(os.path.join(destPath, "D.txt"), 'w') as f:
+    with open(os.path.join(destPath, fpre+"D.txt"), 'w') as f:
         write_csr_matrix(D, f)
 
 
 def ensurePath(path):
+    """Create path if it does not exist."""
     try:
         os.makedirs(path)
     except OSError:
@@ -402,20 +404,43 @@ def ensurePath(path):
             raise
 
 
-def runMangle(sourcePath="..\\run1\\", destPath=None, nu=0.01):
+def runS1(sourcePath="", destPath=None, prefix=""):
     if destPath is None:
-        destPath = os.path.join(sourcePath, "data")
+        destPath = sourcePath # os.path.join(sourcePath, "data")
+    # if file exists (sourcePath) with ending edp, copy that...
+    pass
+    # else look for stokes.edp at sourcepath and copy that...
+    pass
+    # ... to prefix_s0
+
+    # run FreeFem++
+    pass
+
+    # execute FreeFem++-nw sp
+    pass
+
+    # maybe check that expected files are there?
+    pass
+
+def runS2(sourcePath="..\\run1\\", destPath=None, prefix="", nu=0.01):
+    if destPath is None:
+        destPath = sourcePath # os.path.join(sourcePath, "data")
+    fpre = prefix + "s1_" # full prefix
+
     # read intermediate output from FF
-    mm = with_file(os.path.join(sourcePath, 'mass.txt'), readSparseFF)
-    kk = with_file(os.path.join(sourcePath, 'stiff.txt'), readSparseFF)
-    bb = with_file(os.path.join(sourcePath, 'Rih.txt'), readSparseFF)
-    u = with_file(os.path.join(sourcePath, 'u.txt'), readVectFF)
-    v = with_file(os.path.join(sourcePath, 'v.txt'), readVectFF)
-    vv, ff, ee = with_file(os.path.join(sourcePath, 'stokes.msh'), readMeshFF)
+    mm = with_file(os.path.join(sourcePath, fpre+'mass.txt'), readSparseFF)
+    kk = with_file(os.path.join(sourcePath, fpre+'stiff.txt'), readSparseFF)
+    bb = with_file(os.path.join(sourcePath, fpre+'Rih.txt'), readSparseFF)
+    u  = with_file(os.path.join(sourcePath, fpre+'u.txt'), readVectFF)
+    v  = with_file(os.path.join(sourcePath, fpre+'v.txt'), readVectFF)
+    vv, ff, ee = with_file(os.path.join(sourcePath, fpre+'stokes.msh'), readMeshFF)
+
     # compute A, B using fvm
     A, B = getAB(mm, kk, bb, u, v, vv, ff, nu)
+    # NOTE hardcoded parameters: C, D
     C = np.zeros((1, 736))
     C[0, 699] = 2.4325069738165400e+01
     D = C
+
     # write next intermediate files
-    writeABCD(A, B, C, D, destPath=destPath)
+    writeABCD(A, B, C, D, destPath=destPath, prefix=prefix)
