@@ -1,12 +1,36 @@
+from distutils import spawn
 import logging
 import numpy as np
 import os
 import os.path
+import shutil
+import subprocess
 
 
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s. %(levelname)s in %(funcName)s: %(message)s')
+
+# Config
+_extraPaths = ['/u1/local/ff++/bin']
+_searchPath = os.environ['PATH']
+_pathFF = None
+for extraPath in _extraPaths:
+    _searchPath += (os.pathsep + extraPath)
+
+def getPathFF():
+    global _extraPaths, _searchPath, _pathFF
+    if _pathFF is None:
+        logging.debug("attempt to find FreeFem++-nw binary...")
+        p =  spawn.find_executable("FreeFem++-nw", _searchPath)
+        if p is None:
+            errMsg = "Cannot find 'FreeFem++-nw', looked in %s" % _searchPath
+            logging.error(errMsg)
+            raise RuntimeError(errMsg)
+
+        _pathFF = p
+        logging.info("successfully found FreeFem++-nw binary at %s.", _pathFF)
+    return _pathFF
 
 
 def readVectFF(f):
@@ -404,23 +428,61 @@ def ensurePath(path):
             raise
 
 
-def runS1(sourcePath="", destPath=None, prefix=""):
-    if destPath is None:
-        destPath = sourcePath # os.path.join(sourcePath, "data")
+def dothisbeforerunningS1():
     # if file exists (sourcePath) with ending edp, copy that...
     pass
     # else look for stokes.edp at sourcepath and copy that...
     pass
     # ... to prefix_s0
 
-    # run FreeFem++
-    pass
+
+def runS1(sourcePath=None, prefix=None, pathFF=None):
+    if sourcePath is None:
+        sourcePath = "stokes.edp"
+        logging.warn("stage 1: no sourcePath provided, assuming %s", sourcePath)
+    if pathFF is None:
+        pathFF = getPathFF()
+
+    # logic here:
+    # if sourcePath is a directory, not a file: add stokes.edp
+    if os.path.isdir(sourcePath):
+        sourcePath = os.path.join(sourcePath, "stokes.edp")
+        logging.warn("stage 1: sourcePath only directory, assuming %s", sourcePath)
+
+    # now it's a file
+    # if the file is not there, abort
+    if not os.path.isfile(sourcePath):
+        errMsg = "stage 1: sourcePath not found: %s" % sourcePath
+        logging.error(errMsg)
+        raise RuntimeError(errMsg)
+
+    # if the file does not end with edp, warn
+    fileExtension = os.path.splitext(sourcePath)[1]
+    if fileExtension != "edp":
+        logging.warn("stage 1: sourcePath does not end with .edp: %s", sourcePath)
+
+    # if prefix given and stokes file does not start with prefix+"s0_", copy to there
+    # then use it
+    if prefix is not None:
+        fpre = prefix + "s0_"
+        dirname, basename = os.path.split(sourcePath)
+        if bn.startswith(fpre):
+            pass # nothing to do
+        else:
+            newBasename = fpre + bn
+            oldSourcePath = sourcePath
+            sourcePath = os.path.join(dirname, newBasename)
+            # copy over
+            logging.info("stage 1: copying from %s to %s", oldSourcePath, sourcePath)
+            shutil.copyfile(oldSourcePath, sourcePath)
 
     # execute FreeFem++-nw sp
-    pass
+    logging.info("Executing FreeFem++ at %s with file %s", pathFF, sourcePath)
+    subprocess.check_call([pathFF, sourcePath])
 
     # maybe check that expected files are there?
     pass
+
 
 def runS2(sourcePath="..\\run1\\", destPath=None, prefix="", nu=0.01):
     if destPath is None:
