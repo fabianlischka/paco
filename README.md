@@ -56,7 +56,8 @@ parts over infinity = the support.
 * laplacian of a scalar field s is a scalar, namely the divergence of the gradient,
 akin to the "curvature". Heat equation (diffusion): ds/dt = c laplacian(s)
 * (vector) laplacian of a vector field F is (in cartesian coord's) the vector
-of the laplacians of the components of F, laplacian(F) = (laplacian(F1), laplacian(F2), ...)
+of the laplacians of the components of F,
+laplacian(F) = (laplacian(F1), laplacian(F2), ...)
 * product rule: div(sF) = grad(s) . F + s div(F), a scalar
 
 ### Formulation
@@ -116,14 +117,101 @@ Stage n takes the inputs/data from stage n-1 to stage n.
 
 ## Installation
 
-### Prerequisites
+Paco uses some custom C code at its core, but also FreeFem++ to solve a prior
+elliptic problem, and Python to massage some numbers.
 
-  * Python 2, with numpy
-  * FreeFem++ (see installation notes below)
+### To run on HKBU Sciblade
 
-## List of files
+Most required software is already installed. Just clone this repository, and
+you are good to go. On the cluster, run:
+```
+# get this software
+git clone https://github.com/fabianlischka/paco.git
+cd paco
+# run a small example
+python src/paco.py -p myRun_ runs/stokes.edp
+```
 
-Notes
+### To run on your machine (in a CentOS VM)
+
+You can run this on a Virtual Machine on your desktop/laptop (possibly without
+parallel support). Vagrant will download and configure a CentOS 6 box, and
+install the required software, including this.
+
+#### To run on your Windows machine
+
+* install [Chocolatey](https://chocolatey.org/install), a Windows package manager
+* run (in a PowerShell, as administrator), in a convenient directory:
+  ```  
+  # install required software
+  choco install -y anaconda2 git vagrant virtualbox
+  # optionally, also: choco install -y atom kdiff3 putty winscp
+  # might have to close and open a fresh shell to pick up all the new software
+  # get this software - it will be copied into a directory "paco"
+  git clone https://github.com/fabianlischka/paco.git
+  cd paco\vm
+  vagrant plugin install vagrant-vbguest`
+  vagrant up
+  vagrant ssh
+  cd /vagrant/   # this is synced to the paco folder on your host
+  # run a small example
+  python src/paco.py -p myRun_ runs/stokes.edp
+  ```
+
+#### To run on your MacOS X machine
+
+* install [Homebrew](http://brew.sh/), a Mac OS X package manager
+* run (in the Terminal), in a convenient directory:
+  ```
+  brew install anaconda2 git vagrant virtualbox
+  # optionally, also: brew install atom
+
+  # might have to close and open a fresh Terminal to pick up all the new software
+  # get this software - it will be copied into a directory "paco"
+  git clone https://github.com/fabianlischka/paco.git
+  cd paco/vm/
+  vagrant plugin install vagrant-vbguest`
+  vagrant up
+  vagrant ssh
+  cd /vagrant/   # this is synced to the paco folder on your host
+  # run a small example
+  python src/paco.py -p myRun_ runs/stokes.edp
+  ```
+
+
+### To run somewhere else
+
+If you want to run this on your own machine or cluster natively,
+you're on your own, good luck.
+
+Basically, make sure you have:
+* Python 2.6 with NumPy
+* FreeFem++ (in particular, the `FreeFem++-nw` executable)
+* git
+
+Then
+```
+# get this software
+git clone https://github.com/fabianlischka/paco.git
+cd paco
+# run a small example
+python src/paco.py -p myRun_ runs/stokes.edp
+```
+
+
+## List of directories and files
+
+### Directories
+
+* `runs`
+* `src`
+* `test`
+* `vm`
+
+#### The source code
+
+##### Notes
+
 * files containing `main` in the name contain a `main` routine and can be run
 * there are three ways to run a problem:
   * `control_main` runs it without domain decomposition
@@ -178,7 +266,7 @@ to MPI, including application to Domain Decomposition
 
 
 
-## Steps
+## More detailed steps
 
 ### Windows
 
@@ -230,7 +318,11 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
   * FreeFem++ in `/u1/local/ff++`
 * ` /u1/local/ff++/bin/FreeFem++-nw stokes.edp`
 
-### Workflow (old way, for reference)
+
+
+# OBSOLETE (supserseded notes)
+
+## Workflow (old way, for reference)
 
 0. set up stokes.edp as desired.
 1. run `FreeFem++-nw stokes.edp`
@@ -256,10 +348,6 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
     * C.txt and D.txt are hardcoded
 3. run (on the cluster) control_main, dd_main, or dd_gmres
 
-
-
-
-# OBSOLETE (supserseded notes)
 
 ## Vagrant
 
