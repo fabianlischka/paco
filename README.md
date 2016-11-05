@@ -319,6 +319,39 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
 * ` /u1/local/ff++/bin/FreeFem++-nw stokes.edp`
 
 
+# AGENDA
+
+* [ ] make `make` work
+  * [x] rewrite makefile - shorten
+  * [ ] fix libdat.so cludge (Morris?)
+* [ ] Running stages
+  * [x] FreeFem++ on cluster
+  * [ ] sort out directory structure/naming convention
+  * [x] run stage 1
+  * [x] run stage 2
+  * [ ] run stage 3
+  * [ ] refactor `run` functions
+  * [ ] refactor paco CLI: runall/runs1/...?
+* [ ] Testing
+  * [ ] compareS1 (text)
+  * [ ] compareS2 (float - ident, 2 norm, max)
+  * [ ] compareS3
+  * [ ] include in paco CLI
+* VM setup
+  * [x] choose box
+  * [x] get FreeFem++ to compile
+  * [x] pull in source code
+  * [x] Vagrantfile cleanup, re-org
+  * [ ] MPI
+    * Notes:
+      `sudo yum install -y mvapich2-devel.x86_64`
+      add `PATH=$PATH:/usr/lib64/mvapich2/bin` to ~/.bash_profile
+  * MKL
+    * install MKL - ?
+* [ ] Documentation
+* [ ] Speedup
+  * [ ] MPI send & receive
+  * [ ] non-blocking
 
 # OBSOLETE (supserseded notes)
 
