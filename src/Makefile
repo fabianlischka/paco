@@ -4,7 +4,7 @@ MPI_LINK_FLAGS = -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm
 LIBRARY_PATH = /u1/local/intel/mkl/lib/intel64
 INCLUDE_PATH = /u1/local/intel/mkl/include
 DEPS = control.h
-OBJ = Problem.o Solver.o IO.o 
+OBJ = Problem.o Solver.o IO.o
 
 %.o: %.c $(DEPS)
 	$(CC) -Wl,--no-as-needed -L$(LIBRARY_PATH) -I$(INCLUDE_PATH) $(MPI_COMPILE_FLAGS) -c -o $@ $<
