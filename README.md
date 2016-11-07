@@ -337,17 +337,17 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
   * [ ] compareS2 (float - ident, 2 norm, max)
   * [ ] compareS3
   * [ ] include in paco CLI
-* VM setup
+* [ ] VM setup
   * [x] choose box
   * [x] get FreeFem++ to compile
   * [x] pull in source code
   * [x] Vagrantfile cleanup, re-org
   * [ ] MPI
     * Notes:
-      `sudo yum install -y mvapich2-devel.x86_64`
+      `sudo yum install -y mvapich2-devel dapl-devel`
       add `PATH=$PATH:/usr/lib64/mvapich2/bin` to ~/.bash_profile
-  * MKL
-    * install MKL - ?
+  * [ ] MKL
+    * [ ] automatic install for MKL - ?
 * [ ] Documentation
 * [ ] Speedup
   * [ ] MPI send & receive
