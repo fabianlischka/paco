@@ -1,7 +1,7 @@
 echo "Installing prerequisites for FreeFrem++"
 #    sudo yum install -y dkms epel-release kernel-devel
 sudo yum groupinstall -y 'Development Tools'
-sudo yum install -y numpy.x86_64 lapack-devel.x86_64 arpack-devel.x86_64 suitesparse-devel.x86_64
+sudo yum install -y numpy lapack-devel arpack-devel suitesparse-devel
 echo "Downloading FreeFrem++"
 wget -nv http://www.freefem.org/ff++/ftp/freefem++-3.49.tar.gz -O ff.tar.gz
 tar zxvf ff.tar.gz
