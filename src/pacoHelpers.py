@@ -402,16 +402,16 @@ def getAB(mm, kk, bb, u, v, vv, ff, nu):
     return A, B
 
 
-def writeABCD(A, B, C, D, destPath="", prefix = ""):
-    ensurePath(destPath)
+def writeABCD(A, B, C, D, destDir="", prefix = ""):
+    ensurePath(destDir)
     fpre = prefix + "s2_"
-    with open(os.path.join(destPath, fpre+"A.txt"), 'w') as f:
+    with open(os.path.join(destDir, fpre+"A.txt"), 'w') as f:
         write_csr_matrix(A, f)
-    with open(os.path.join(destPath, fpre+"B.txt"), 'w') as f:
+    with open(os.path.join(destDir, fpre+"B.txt"), 'w') as f:
         write_csr_matrix(B, f)
-    with open(os.path.join(destPath, fpre+"C.txt"), 'w') as f:
+    with open(os.path.join(destDir, fpre+"C.txt"), 'w') as f:
         write_csr_matrix(C, f)
-    with open(os.path.join(destPath, fpre+"D.txt"), 'w') as f:
+    with open(os.path.join(destDir, fpre+"D.txt"), 'w') as f:
         write_csr_matrix(D, f)
 
 
@@ -424,70 +424,67 @@ def ensurePath(path):
             raise
 
 
-def runS1(sourcePath=None, prefix=None, pathFF=None):
-    if sourcePath is None:
-        sourcePath = "stokes.edp"
-        logging.warn("stage 1: no sourcePath provided, assuming %s", sourcePath)
+def runS1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
+    """Run given file through FreeFem++ to obtain s1 files.
+
+    Prefixes the given .edp file with given prefix + "s0_",
+        unless it's of that form already.
+    Then copies to destDir.
+    Then, runs FreeFem++ on it.
+    """
+
     if pathFF is None:
         pathFF = getPathFF()
 
-    # logic here:
-    # if sourcePath is a directory, not a file: add stokes.edp
-    if os.path.isdir(sourcePath):
-        sourcePath = os.path.join(sourcePath, "stokes.edp")
-        logging.warn("stage 1: sourcePath only directory, assuming %s", sourcePath)
-
-    # now it's a file
-    # if the file is not there, abort
-    if not os.path.isfile(sourcePath):
-        errMsg = "stage 1: sourcePath not found: %s" % sourcePath
-        logging.error(errMsg)
-        raise RuntimeError(errMsg)
-
     # if the file does not end with edp, warn
-    fileExtension = os.path.splitext(sourcePath)[1]
+    fileExtension = os.path.splitext(sourceFullPath)[1]
     if fileExtension != ".edp":
-        logging.warn("stage 1: sourcePath does not end with .edp: %s", sourcePath)
+        logging.warn("stage 1: sourceFullPath does not end with .edp: %s", sourceFullPath)
 
-    # if prefix given and stokes file does not start with prefix+"s0_", copy to there
-    # then use it
-    if prefix is not None:
-        fpre = prefix + "s0_"
-        dirname, basename = os.path.split(sourcePath)
-        if basename.startswith(fpre):
-            pass # nothing to do
-        else:
-            newBasename = fpre + basename
-            oldSourcePath = sourcePath
-            sourcePath = os.path.join(dirname, newBasename)
-            # copy over
-            logging.info("stage 1: copying from %s to %s", oldSourcePath, sourcePath)
-            shutil.copyfile(oldSourcePath, sourcePath)
+    dirname, basename = os.path.split(sourceFullPath)
+    if destDir is None:
+        destDir = dirname
+
+    ensurePath(destDir)
+
+    fpre = prefix + "s0_"
+    if basename.startswith(fpre):
+        newBasename = basename
+    else:
+        newBasename = fpre + basename
+
+    destFullPath = os.path.join(destDir, newBasename)
+    if ( not os.path.isfile(destFullPath) or
+        (not os.path.samefile(sourceFullPath, destFullPath))):
+        # copy
+        logging.info("stage 1: copying from %s to %s", sourceFullPath, destFullPath)
+        shutil.copyfile(sourceFullPath, destFullPath)
 
     # execute FreeFem++-nw sp
-    logging.info("Executing FreeFem++ at %s with file %s", pathFF, sourcePath)
+    logging.info("Executing FreeFem++ at %s with file %s", pathFF, destFullPath)
+
     logLevelFF = 0
     if logging.getLogger().getEffectiveLevel() < 20:
         logLevelFF = 2
 
-    subprocess.check_call([pathFF, "-v", str(logLevelFF), sourcePath])
+    subprocess.check_call([pathFF, "-v", str(logLevelFF), destFullPath])
 
     # maybe check that expected files are there?
     pass
 
 
-def runS2(sourcePath="..\\run1\\", destPath=None, prefix="", nu=0.01):
-    if destPath is None:
-        destPath = sourcePath # os.path.join(sourcePath, "data")
+def runS2(sourceDir, destDir=None, prefix="pre_", nu=0.01):
+    if destDir is None:
+        destDir = sourceDir
     fpre = prefix + "s1_" # full prefix
 
     # read intermediate output from FF
-    mm = with_file(os.path.join(sourcePath, fpre+'mass.txt'), readSparseFF)
-    kk = with_file(os.path.join(sourcePath, fpre+'stiff.txt'), readSparseFF)
-    bb = with_file(os.path.join(sourcePath, fpre+'Rih.txt'), readSparseFF)
-    u  = with_file(os.path.join(sourcePath, fpre+'u.txt'), readVectFF)
-    v  = with_file(os.path.join(sourcePath, fpre+'v.txt'), readVectFF)
-    vv, ff, ee = with_file(os.path.join(sourcePath, fpre+'stokes.msh'), readMeshFF)
+    mm = with_file(os.path.join(sourceDir, fpre+'mass.txt'), readSparseFF)
+    kk = with_file(os.path.join(sourceDir, fpre+'stiff.txt'), readSparseFF)
+    bb = with_file(os.path.join(sourceDir, fpre+'Rih.txt'), readSparseFF)
+    u  = with_file(os.path.join(sourceDir, fpre+'u.txt'), readVectFF)
+    v  = with_file(os.path.join(sourceDir, fpre+'v.txt'), readVectFF)
+    vv, ff, ee = with_file(os.path.join(sourceDir, fpre+'stokes.msh'), readMeshFF)
 
     # compute A, B using fvm
     A, B = getAB(mm, kk, bb, u, v, vv, ff, nu)
@@ -497,4 +494,24 @@ def runS2(sourcePath="..\\run1\\", destPath=None, prefix="", nu=0.01):
     D = C
 
     # write next intermediate files
-    writeABCD(A, B, C, D, destPath=destPath, prefix=prefix)
+    writeABCD(A, B, C, D, destDir=destDir, prefix=prefix)
+
+
+def compareS0(sourceFullPath1, sourceFullPath2):
+    pass
+
+def compareS1(prefix1, prefix2, sourceDir1="", sourceDir2=""):
+    basenames = ['mass', 'stiff', 'Rih', 'u', 'v']
+    readFuncs = [readSparseFF, readSparseFF, readSparseFF, readVectFF, readVectFF]
+    fpre1 = prefix1 + "s1_"
+    fpre2 = prefix2 + "s1_"
+
+    for basename, readFunc in zip(basenames, readFuncs):
+        obj1 = with_file(os.path.join(sourceDir1, fpre1+basename), readFunc)
+        obj2 = with_file(os.path.join(sourceDir2, fpre2+basename), readFunc)
+        if obj1.shape == obj2.shape:
+            # look at np.array_equal(A,B), np.allclose(A,B)
+            diff =
+
+    vv1, ff1, ee1 = with_file(os.path.join(sourceDir1, fpre1+'stokes.msh'), readMesFF)
+    vv2, ff2, ee2 = with_file(os.path.join(sourceDir2, fpre2+'stokes.msh'), readMesFF)
