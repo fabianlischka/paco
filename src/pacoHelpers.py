@@ -25,7 +25,7 @@ def getPathFF():
             raise RuntimeError(errMsg)
 
         _pathFF = p
-        logging.info("successfully found FreeFem++-nw binary at %s.", _pathFF)
+        logging.debug("successfully found FreeFem++-nw binary at %s.", _pathFF)
     return _pathFF
 
 
@@ -441,17 +441,18 @@ def runS1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
     if fileExtension != ".edp":
         logging.warn("stage 1: sourceFullPath does not end with .edp: %s", sourceFullPath)
 
-    dirname, basename = os.path.split(sourceFullPath)
+    # determine destination directory, copy source file over if necessary
+    sourceDir, sourceBasename = os.path.split(sourceFullPath)
     if destDir is None:
-        destDir = dirname
+        destDir = sourceDir
 
     ensurePath(destDir)
 
     fpre = prefix + "s0_"
-    if basename.startswith(fpre):
-        newBasename = basename
+    if sourceBasename.startswith(fpre):
+        newBasename = sourceBasename
     else:
-        newBasename = fpre + basename
+        newBasename = fpre + sourceBasename
 
     destFullPath = os.path.join(destDir, newBasename)
     if ( not os.path.isfile(destFullPath) or
@@ -460,14 +461,15 @@ def runS1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
         logging.info("stage 1: copying from %s to %s", sourceFullPath, destFullPath)
         shutil.copyfile(sourceFullPath, destFullPath)
 
-    # execute FreeFem++-nw sp
-    logging.info("Executing FreeFem++ at %s with file %s", pathFF, destFullPath)
-
     logLevelFF = 0
     if logging.getLogger().getEffectiveLevel() < 20:
         logLevelFF = 2
 
-    subprocess.check_call([pathFF, "-v", str(logLevelFF), destFullPath])
+    # execute FreeFem++-nw sp
+    logging.info("Executing FreeFem++ (at %s) in dir %s on file %s",
+                    pathFF, destDir, newBasename)
+    subprocess.check_call([pathFF, "-v", str(logLevelFF), newBasename],
+                          cwd=destDir)
 
     # maybe check that expected files are there?
     pass
@@ -511,7 +513,7 @@ def compareS1(prefix1, prefix2, sourceDir1="", sourceDir2=""):
         obj2 = with_file(os.path.join(sourceDir2, fpre2+basename), readFunc)
         if obj1.shape == obj2.shape:
             # look at np.array_equal(A,B), np.allclose(A,B)
-            diff =
+            pass
 
     vv1, ff1, ee1 = with_file(os.path.join(sourceDir1, fpre1+'stokes.msh'), readMesFF)
     vv2, ff2, ee2 = with_file(os.path.join(sourceDir2, fpre2+'stokes.msh'), readMesFF)
