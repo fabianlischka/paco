@@ -38,16 +38,18 @@ def runStages(sourceFullPath, prefix, destDir, verbose):
 
     # set up paths
     sourceDir, sourceBasename = os.path.split(sourceFullPath)
+    if len(sourceDir) == 0:
+        sourceDir = "."
     if destDir is None:
         destDir = sourceDir
 
     # S1
-    msg = "Run stage 1 on %s with prefix %s into %s" % (sourceFullPath, prefix, destDir)
+    msg = "Run stage 1 on '%s' with prefix '%s' into dir '%s'." % (sourceFullPath, prefix, destDir)
     print(msg)
     logging.info(msg)
     pacoHelpers.runS1(sourceFullPath=sourceFullPath, prefix=prefix, destDir=destDir)
     # S2
-    msg = "Run stage 2 with prefix %s in %s." % (prefix, destDir)
+    msg = "Run stage 2 with prefix '%s' in dir '%s'." % (prefix, destDir)
     print(msg)
     logging.info(msg)
     pacoHelpers.runS2(sourceDir=destDir, prefix=prefix)

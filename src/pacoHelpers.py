@@ -417,6 +417,8 @@ def writeABCD(A, B, C, D, destDir="", prefix = ""):
 
 def ensurePath(path):
     """Create path if it does not exist."""
+    if len(path) == 0:
+        return
     try:
         os.makedirs(path)
     except OSError:
@@ -443,6 +445,8 @@ def runS1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
 
     # determine destination directory, copy source file over if necessary
     sourceDir, sourceBasename = os.path.split(sourceFullPath)
+    if len(sourceDir) == 0:
+        sourceDir = "."
     if destDir is None:
         destDir = sourceDir
 
