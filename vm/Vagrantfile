@@ -26,5 +26,6 @@ Vagrant.configure("2") do |config|
   # run the shell script to install and make FreeFem
   config.vm.provision :shell, path: "installFreeFem.sh"
   # pull the paco repository from github
-  config.vm.provision "shell", inline: "git clone https://github.com/fabianlischka/paco.git"
+  # NOTE: no need, as we sync the whole folder to /vagrant
+  # config.vm.provision "shell", inline: "git clone https://github.com/fabianlischka/paco.git"
 end
