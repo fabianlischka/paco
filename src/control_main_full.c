@@ -17,7 +17,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A must be square
   if (A->m != A->n)
     goto FAIL;
-  
+
   // A and B must have the same number of rows
   if (A->m != B->m)
     goto FAIL;
@@ -25,7 +25,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A, C and D must have the same number of columns
   if (A->n != C->n || A->n != D->n)
     goto FAIL;
-  
+
   return;
 
  FAIL:
@@ -53,14 +53,20 @@ int main(int argc, char **argv)
   double x, y, ti;
   int j, k, count;
 
-  // argv[1] contains local path
-  length = strlen(argv[1]);
+  // argv[1] contains local path, argv[2] contains prefix
+  if(argc < 3) {
+    printf("Please specify directory in which to run, and prefix. Aborting...\n");
+    exit(3);
+  }
+  length = strlen(argv[1]) + 1 + strlen(argv[2]); // path/prefix
   fname = (char *)malloc((length+30)*sizeof(char));
   strcpy(fname, argv[1]);
+  strcat(fname, "/");
+  strcat(fname, argv[2]);
 
   // Read parameters from file
   param = (Param *)malloc(sizeof(Param));
-  strcat(fname, "/params.txt");
+  strcat(fname, "s2_params.txt");
   readParams(fname, param, 5);
 
   /* Time horizon and time steps */
@@ -77,16 +83,16 @@ int main(int argc, char **argv)
   printf("Reading matrices...\n");
   /* Read in matrices */
   fname[length] = '\0';
-  strcat(fname, "/A.txt");
+  strcat(fname, "s2_A.txt");
   A = readMatrix(fname);
   fname[length] = '\0';
-  strcat(fname, "/B.txt");
+  strcat(fname, "s2_B.txt");
   B = readMatrix(fname);
   fname[length] = '\0';
-  strcat(fname, "/C.txt");
+  strcat(fname, "s2_C.txt");
   C = readMatrix(fname);
   fname[length] = '\0';
-  strcat(fname, "/D.txt");
+  strcat(fname, "s2_D.txt");
   D = readMatrix(fname);
 
   printf("Checking consistency between sizes...\n");
@@ -105,18 +111,26 @@ int main(int argc, char **argv)
   memset(g, 0, A->n * sizeof(double));
 
   // initialize yhat
+  // dimension: Nt*Nt*Nt/beta/beta (here), C.m * Nt (above)
+  // thus need: C.m = Nt*Nt/beta/beta
+  if(C->m < 1.0/h/h) {
+    printf("Inconsistent dimensions for generating yhat. Aborting...\n");
+    exit(3);
+  }
+
   ti = 0.0;
   count = 0;
   for (i=0; i < Nt; i++) {
     // iterate on yj
     y = h/2-0.5;
+    // note: 1/h = Nt/beta
     for (j=0; j < 1.0/h; j++) {
       // iterate on xi
       x = h/2-0.5;
       for (k=0; k < 1.0/h; k++) {
-	yhat[count++] = exp(-16.0*(x-0.5*sin(2*M_PI*ti))*(x-0.5*sin(2*M_PI*ti)) -
-			    16.0*(y-0.5*cos(2*M_PI*ti))*(y-0.5*cos(2*M_PI*ti)));
-	x += h;
+        yhat[count++] = exp(-16.0*(x-0.5*sin(2*M_PI*ti))*(x-0.5*sin(2*M_PI*ti))
+                            -16.0*(y-0.5*cos(2*M_PI*ti))*(y-0.5*cos(2*M_PI*ti)));
+        x += h;
       }
       y += h;
     }
@@ -137,21 +151,17 @@ int main(int argc, char **argv)
 
   printf("Solving problem...\n");
   solveProblem(problem);
-  
+
   printf("Writing solution...\n");
   // Write vector
   fname[length] = '\0';
-  strcat(fname, "/sol.txt");
+  strcat(fname, "s3_sol.txt");
   fid = fopen(fname,"w");
   ndof = A->n + (B->n)*Nt;
   for (i=0; i < ndof; i++) {
     fprintf(fid, "%.16e\n", problem->sol[i]);
   }
   fclose(fid);
-  
+
   printf("Done.\n");
-}  
-
-
-
-
+}

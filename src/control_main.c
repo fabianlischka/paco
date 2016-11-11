@@ -17,7 +17,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A must be square
   if (A->m != A->n)
     goto FAIL;
-  
+
   // A and B must have the same number of rows
   if (A->m != B->m)
     goto FAIL;
@@ -25,7 +25,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A, C and D must have the same number of columns
   if (A->n != C->n || A->n != D->n)
     goto FAIL;
-  
+
   return;
 
  FAIL:
@@ -52,14 +52,21 @@ int main(int argc, char **argv)
   int length;
   double *r;
 
-  // argv[1] contains local path
-  length = strlen(argv[1]);
+  // argv[1] contains local path, argv[2] contains prefix
+  if(argc < 3)
+  {
+    printf("Please specify directory in which to run, and prefix. Aborting...\n");
+    exit(3);
+  }
+  length = strlen(argv[1]) + 1 + strlen(argv[2]); // path/prefix
   fname = (char *)malloc((length+30)*sizeof(char));
   strcpy(fname, argv[1]);
+  strcat(fname, "/");
+  strcat(fname, argv[2]);
 
   // Read parameters from file
   param = (Param *)malloc(sizeof(Param));
-  strcat(fname, "/params.txt");
+  strcat(fname, "s2_params.txt");
   readParams(fname, param, 5);
 
   /* Time horizon and time steps */
@@ -76,16 +83,16 @@ int main(int argc, char **argv)
   printf("Reading matrices...\n");
   /* Read in matrices */
   fname[length] = '\0';
-  strcat(fname, "/A.txt");
+  strcat(fname, "s2_A.txt");
   A = readMatrix(fname);
   fname[length] = '\0';
-  strcat(fname, "/B.txt");
+  strcat(fname, "s2_B.txt");
   B = readMatrix(fname);
   fname[length] = '\0';
-  strcat(fname, "/C.txt");
+  strcat(fname, "s2_C.txt");
   C = readMatrix(fname);
   fname[length] = '\0';
-  strcat(fname, "/D.txt");
+  strcat(fname, "s2_D.txt");
   D = readMatrix(fname);
 
   printf("Checking consistency between sizes...\n");
@@ -112,10 +119,11 @@ int main(int argc, char **argv)
   }
   */
 
+  printf("reading yhat...");
   fname[length] = '\0';
-  strcat(fname, "/yhat.txt");
+  strcat(fname, "s2_yhat.txt");
   readDoubleVector(fname, yhat, C->m*Nt);
-  
+
   /*
   // yhat = Nt copies of g2
   for (i=0; i < Nt; i++) {
@@ -139,11 +147,11 @@ int main(int argc, char **argv)
   ndof = A->n + B->n*Nt;
   r = (double *)malloc(ndof*sizeof(double));
   residual(r, problem->sol, problem);
-  
+
   printf("Writing solution...\n");
   // Write vector
   fname[length] = '\0';
-  strcat(fname, "/sol.txt");
+  strcat(fname, "s3_sol.txt");
   fid = fopen(fname,"w");
   for (i=0; i < ndof; i++) {
     fprintf(fid, "%.16e\n", problem->sol[i]);
@@ -152,16 +160,12 @@ int main(int argc, char **argv)
 
   printf("Writing trajectory...\n");
   fname[length] = '\0';
-  strcat(fname, "/yy.txt");
+  strcat(fname, "s3_yy.txt");
   fid = fopen(fname,"w");
   for (i=0; i < A->n*Nt; i++) {
     fprintf(fid, "%.16e\n", problem->yy[i]);
   }
   fclose(fid);
-  
+
   printf("Done.\n");
-}  
-
-
-
-
+}
