@@ -261,10 +261,7 @@ Length | Name | Comment
 
 * [MVAPICH2](http://mvapich.cse.ohio-state.edu/features/#mv2), an
 implementation of [MPI-3](http://mpi-forum.org/docs/mpi-3.0/mpi30-report.pdf)
-* Prof. Alonso's [lecture notes for CME342](http://adl.stanford.edu/cme342/Lecture_Notes.html) with an introduction
-to MPI, including application to Domain Decomposition
-
-
+* Prof. Alonso's [lecture notes for CME342](http://adl.stanford.edu/cme342/Lecture_Notes.html) with an introduction to MPI, including application to Domain Decomposition
 
 ## More detailed steps
 
@@ -317,6 +314,11 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
   * data in `/u1/local/share/felix_grp`
   * FreeFem++ in `/u1/local/ff++`
 * ` /u1/local/ff++/bin/FreeFem++-nw stokes.edp`
+* need to make sure /u1/local/intel/mkl/lib/intel64 is on LD_LIBRARY_PATH: 
+  * ```
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/u1/local/intel/mkl/lib/intel64
+    export LD_LIBRARY_PATH
+    ```
 
 
 # AGENDA
