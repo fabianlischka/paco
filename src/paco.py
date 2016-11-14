@@ -2,7 +2,7 @@
 import logging
 import optparse
 import os.path
-import pacoHelpers
+import pacoRun
 
 
 def main():
@@ -47,12 +47,12 @@ def runStages(sourceFullPath, prefix, destDir, verbose):
     msg = "Run stage 1 on '%s' with prefix '%s' into dir '%s'." % (sourceFullPath, prefix, destDir)
     print(msg)
     logging.info(msg)
-    pacoHelpers.runS1(sourceFullPath=sourceFullPath, prefix=prefix, destDir=destDir)
+    pacoRun.runS1(sourceFullPath=sourceFullPath, prefix=prefix, destDir=destDir)
     # S2
     msg = "Run stage 2 with prefix '%s' in dir '%s'." % (prefix, destDir)
     print(msg)
     logging.info(msg)
-    pacoHelpers.runS2(sourceDir=destDir, prefix=prefix)
+    pacoRun.runS2(sourceDir=destDir, prefix=prefix)
 
     logging.shutdown()
 
