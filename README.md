@@ -77,7 +77,7 @@ functional F(u) is minimised, where
 See F Kwok: "On the Time-domain Decomposition of Parabolic Optimal Control Problems"
 in Section "Background" below for details.
 
-### Inputs/Outputs
+### Stages, Inputs/Outputs
 
 * The problem as outlined above needs, as inputs:
   * A, B, C, D, a, b, y0, y^hat(t), y^hat_T
@@ -85,19 +85,20 @@ in Section "Background" below for details.
 The full run proceeds in 3 stages (FreeFem, Python/Matlab, C code).
 Stage n takes the inputs/data from stage n-1 to stage n.
 
+
 1. Stage 1: FreeFem++
   * reads: prefix + 's0_' + **stokes.edp**
   * writes: prefix + 's1_' +
     * u.txt, v.txt, mass.txt, stiff.txt, Rih.txt
     * stokes.msh (mesh, see [Section 5.1.4 "Data Structures and Read/Write Statements for a Mesh"](http://www.freefem.org/ff++/ftp/freefem++doc.pdf#subsection.5.1.4) for format)
     * bay_flux.ps (plot)
-1. Stage 2: Python (previously: Matlab)
+2. Stage 2: Python (previously: Matlab)
   * reads: prefix + 's1_' +
     * u.txt, v.txt, mass.txt, stiff.txt, Rih.txt
     * stokes.msh
   * writes: prefix + 's2_' +
     * A.txt, B.txt, C.txt, D.txt
-2. Stage 3: C code
+3. Stage 3: C code
   * control_main.c
     * reads: prefix + 's2_' +
       * A.txt, B.txt, C.txt, D.txt
@@ -203,10 +204,16 @@ python src/paco.py -p myRun_ runs/stokes.edp
 
 ### Directories
 
+* `generate`
+  * legacy: contains the old MATLAB source code
 * `runs`
+  * contains data for several runs
 * `src`
-* `test`
+  * contains the source code
+* `tests`
+  * contains tests
 * `vm`
+  * contains the configuration for the vagrant VM
 
 #### The source code
 
@@ -314,7 +321,7 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
   * data in `/u1/local/share/felix_grp`
   * FreeFem++ in `/u1/local/ff++`
 * ` /u1/local/ff++/bin/FreeFem++-nw stokes.edp`
-* need to make sure /u1/local/intel/mkl/lib/intel64 is on LD_LIBRARY_PATH: 
+* need to make sure /u1/local/intel/mkl/lib/intel64 is on LD_LIBRARY_PATH:
   * ```
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/u1/local/intel/mkl/lib/intel64
     export LD_LIBRARY_PATH
