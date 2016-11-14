@@ -1,0 +1,45 @@
+// Parameters file
+//
+// 
+// 1. Do not change the order of parameters
+// 2. All lines starting with '/' are ignored
+// 3. Do not leave empty lines -- always precede with //
+//
+// Parameter 1: beta (Length of time horizon, type double)
+32.0
+//
+// Parameter 2: Nt (Number of time steps, type int)
+64
+//
+// Parameter 3: a1 (weighting for desired trajectory, type double)
+1.0
+//
+// Parameter 4: a2 (weighting for target state, type double)
+0.0
+//
+// Parameter 5: q (weighting for initial condition, type double)
+0.0
+//
+// Parameter 6: pp (right Robin parameter, type double)
+//0
+//6.5    // Four sub
+//4.1
+//0.9706
+0.8563
+//
+// Parameter 7: qq (left Robin parameter, type double)
+//0
+//0.065    // Four sub
+//0.041
+//0.7272
+0.8563
+//
+// Parameter 8: max_iter (type int)
+200    // For stationary iteration
+//
+// Paramter 9: tol (type double)
+1.0E-6
+//
+// Paramter 10: krylov (size of Krylov subspace, type int)
+200
+
