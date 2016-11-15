@@ -1,0 +1,78 @@
+//int n=3;
+//mesh Th=square(10*n,10*n);
+
+int shore = 1;
+int inlet = 2;
+int outlet= 3;
+
+int n = 20;
+int nc = 3*n;
+
+border C01(t=-1,1){x=t; y = 1-t*t; label=shore;}
+border C02(t=0,1){x=t-1; y = 0; label=inlet;}
+border C03(t=0,1) {x=t; y = 0; label=outlet;}
+
+func g = -sin(pi*x);
+
+mesh Th = buildmesh(C02(n)+C03(n)+C01(-nc));
+//plot(Th,wait=1);
+
+fespace Uh(Th,P1b); Uh u,v,uu,vv;
+fespace Ph(Th,P1); Ph p,pp;
+solve stokes([u,v,p],[uu,vv,pp]) =
+int2d(Th)(dx(u)*dx(uu)+dy(u)*dy(uu) + dx(v)*dx(vv)+ dy(v)*dy(vv)
++ dx(p)*uu + dy(p)*vv + pp*(dx(u)+dy(v))
+- 1e-10*p*pp) + int1d(Th,1)((2*x*u+v)*pp)
++ on(inlet, v=g);
+plot([u,v],wait=1,value=1,ps="bay_flux.ps");
+
+fespace P0h(Th,P0);
+P0h u0, v0;
+
+u0 = u;
+v0 = v;
+
+{
+  ofstream f("u.txt");
+  f << u0[] << endl;
+}
+
+{
+  ofstream f("v.txt");
+  f << v0[] << endl;
+}
+
+fespace P1h(Th,P1);
+P1h u1, v1;
+
+varf mass(u1,v1) = int2d(Th,qft=qf1pTlump) (u1*v1);
+varf stiff(u1,v1) = int2d(Th) (dx(u1)*dx(v1) + dy(u1)*dy(v1));
+matrix massmat = mass(P1h,P1h);
+matrix stiffmat = stiff(P1h,P1h);
+int i;
+
+{
+  ofstream f("mass.txt");
+  f << massmat << endl;
+}
+
+
+{
+  ofstream f("stiff.txt");
+  f << stiffmat << endl;
+}
+
+savemesh(Th,"stokes.msh");
+
+P1h suppi = x^2 + (y-0.5)^2 < 0.01;
+mesh Thi = Th;
+fespace Vhi(Thi,P1);
+Thi = trunc(Th, suppi>0, label=10, split=1);
+matrix Rih;
+Rih = interpolate(Vhi, Ph, inside=1);
+
+{
+  ofstream f("Rih.txt");
+  f << Rih << endl;
+}
+
