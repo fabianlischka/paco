@@ -32,12 +32,26 @@ def compareS1(prefix1, prefix2, sourceDir1=".", sourceDir2=None):
     for basename, readFunc in zip(basenames, readFuncs):
         obj1 = with_file(os.path.join(sourceDir1, fpre1+basename), readFunc)
         obj2 = with_file(os.path.join(sourceDir2, fpre2+basename), readFunc)
-        if obj1.shape == obj2.shape:
-            # look at np.array_equal(A,B), np.allclose(A,B)
-            pass
+        diff, res = compareMatrices(obj1, obj2)
+        d += diff
+        msg = "For %s: %s. Diff = %s" % (basename, res, diff)
+        print(msg)
+        logging.info(msg)
 
     vv1, ff1, ee1 = with_file(os.path.join(sourceDir1, fpre1+'stokes.msh'), readMesFF)
     vv2, ff2, ee2 = with_file(os.path.join(sourceDir2, fpre2+'stokes.msh'), readMesFF)
+    for basename, obj1, obj2 in [   ("vv",vv1,vv2),
+                                    ("ff",ff1,ff2),
+                                    ("ee", ee1, ee2)]:
+        diff, res = compareMatrices(obj1, obj2)
+        d += diff
+        msg = "For %s: %s. Diff = %s" % (basename, res, diff)
+        print(msg)
+
+    msg = "Total diff: %s." % ( d )
+    print(msg)
+    logging.info(msg)
+    return d
 
 def compareS2(prefix1, prefix2, sourceDir1=".", sourceDir2=None):
     # compare A, B, C, D
