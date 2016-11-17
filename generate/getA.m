@@ -62,13 +62,13 @@ for i=1:Nt,
 end;
 y = M2\y;
 %%
-for i=1:Nt,
-    disp(i)
-    patch('Faces',ff,'Vertices',vv(:,1:2),'FaceColor','interp','FaceVertexCData',y(:,i),'LineStyle','none');
-    axis equal
-    ax=gca;
-    ax.CLim=[0 4];
-    colorbar;
-    axis off
-    pause;
-end;
+% for i=1:Nt,
+%     disp(i)
+%     patch('Faces',ff,'Vertices',vv(:,1:2),'FaceColor','interp','FaceVertexCData',y(:,i),'LineStyle','none');
+%     axis equal
+%     ax=gca;
+%     ax.CLim=[0 4];
+%     colorbar;
+%     axis off
+%     pause;
+% end;
