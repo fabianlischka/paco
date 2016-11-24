@@ -5,6 +5,8 @@ import os.path
 import pacoUtils as pu
 import shutil
 import subprocess
+import yaml
+
 
 
 def fvm(vv, q, u, where):  # finite volume method
@@ -113,7 +115,7 @@ def getAB(mm, kk, bb, u, v, vv, ff, nu):
     return A, B
 
 
-def runS1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
+def runStage1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
     """Run given file through FreeFem++ to obtain s1 files.
 
     Prefixes the given .edp file with given prefix + "s0_",
@@ -166,9 +168,8 @@ def runS1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
     pass
 
 
-def runS2(sourceDir, destDir=None, prefix="pre_", nu=0.01):
-    if destDir is None:
-        destDir = sourceDir
+def runStage2(sourceDir, prefix="pre_", params):
+    destDir = sourceDir
     fpre = prefix + "s1_" # full prefix
 
     # read intermediate output from FF
@@ -179,16 +180,19 @@ def runS2(sourceDir, destDir=None, prefix="pre_", nu=0.01):
     v  = pu.with_file(os.path.join(sourceDir, fpre+'v.txt'), pu.readVectFF)
     vv, ff, ee = pu.with_file(os.path.join(sourceDir, fpre+'stokes.msh'), pu.readMeshFF)
 
+    nu = params.runStage2.nu
     # compute A, B using fvm
     A, B = getAB(mm, kk, bb, u, v, vv, ff, nu)
+    C, D = params.runStage2.C, params.runStage2.D
+
     # NOTE hardcoded parameters: C, D
-    C = np.zeros((1, 736))
-    C[0, 699] = 2.4325069738165400e+01
-    D = C
+    # C = np.zeros((1, 736))
+    # C[0, 699] = 2.4325069738165400e+01
+    # D = C
 
     # write next intermediate files
     pu.writeABCD(A, B, C, D, destDir=destDir, prefix=prefix)
 
-def runS3(sourceDir, prefix="pre_"):
+def runStage3(sourceDir, prefix="pre_"):
     # ../src/control_main /home/lischka/paco/runs felix2_
     pass

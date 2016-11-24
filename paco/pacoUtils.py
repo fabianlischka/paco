@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import os
 import os.path
+import string
 
 
 # Config
@@ -294,7 +295,7 @@ def read_csr_matrix(f):
     return res
 
 
-def writeABCD(A, B, C, D, destDir="", prefix = ""):
+def writeABCD(A, B, C, D, destDir=".", prefix=""):
     ensurePath(destDir)
     fpre = prefix + "s2_"
     with open(os.path.join(destDir, fpre+"A.txt"), 'w') as f:
@@ -305,6 +306,24 @@ def writeABCD(A, B, C, D, destDir="", prefix = ""):
         write_csr_matrix(C, f)
     with open(os.path.join(destDir, fpre+"D.txt"), 'w') as f:
         write_csr_matrix(D, f)
+
+
+def readABCD(sourceDir=".", prefix=""):
+    fpre = prefix + "s2_"
+    A = with_file(os.path.join(sourceDir, fpre+'A.txt'), read_csr_matrix)
+    B = with_file(os.path.join(sourceDir, fpre+'B.txt'), read_csr_matrix)
+    C = with_file(os.path.join(sourceDir, fpre+'C.txt'), read_csr_matrix)
+    D = with_file(os.path.join(sourceDir, fpre+'D.txt'), read_csr_matrix)
+    return A, B, C, D
+
+
+def writeParamsFile(destDir=".", prefix="", params):
+    fpre = prefix + "s3_"
+    with open('template_params.txt', 'r') as f:
+        template = string.Template(f.read())
+    outfile = template.substitute(params)
+    with open(os.path.join(destDir, fpre+"params.txt"), 'w') as f:
+        f.write(outfile)
 
 
 def ensurePath(path):

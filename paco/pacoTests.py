@@ -5,6 +5,35 @@ import numpy as np
 import os.path
 import pacoUtils as pu
 
+def checkS0():
+    pass
+
+def checkS1(sourceDir=".", prefix):
+    pass
+
+def checkS2(sourceDir=".", prefix):
+    A, B, C, D = pu.readABC(sourceDir=sourceDir, prefix=prefix)
+    return checkConsistency(A, B, C, D)
+
+def checkConsistency(A, B, C, D):
+    msg = "" # no problems
+    if A.ndim != 2:
+        msg = "A must have 2 dimensions."
+    else if A.shape[0] != A.shape[1]:
+        msg = "A must be square."
+    else if A.shape[0] != B.shape[1]:
+        msg = "A and B must have same number of rows."
+    else if A.shape[1] != C.shape[1] or A.shape[1] != D.shape[1]:
+        msg = "A, C and D must have the same number of columns."
+
+    if len(msg) > 0:
+        logging.error(msg)
+        return False
+    else
+        logging.debug("Matrices consistent.")
+        return True
+
+
 def compareMatrices(A, B):
     if A.shape != B.shape:
         return (1000000, "Different shape.")
@@ -20,7 +49,7 @@ def compareS0(sourceFullPath1, sourceFullPath2):
     # compare stokes.edp
     pass
 
-def compareS1(prefix1, prefix2, sourceDir1=".", sourceDir2=None):
+def compareS1(sourceDir1, prefix1, sourceDir2, prefix2):
     # compare u, v, mass, stiff, Rih, stokes.msh
     if sourceDir2 is None:
         sourceDir2 = sourceDir1
@@ -53,7 +82,7 @@ def compareS1(prefix1, prefix2, sourceDir1=".", sourceDir2=None):
     logging.info(msg)
     return d
 
-def compareS2(prefix1, prefix2, sourceDir1=".", sourceDir2=None):
+def compareS2(sourceDir1, prefix1, sourceDir2, prefix2):
     # compare A, B, C, D
     if sourceDir2 is None:
         sourceDir2 = sourceDir1
