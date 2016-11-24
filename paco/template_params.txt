@@ -1,0 +1,37 @@
+// Parameters file
+// Notes:
+// 0. If there are dollar signs followd by variable names below,
+//    this is the template - do not modify or remove
+// 1. Do not change the order of parameters
+// 2. All lines starting with '/' are ignored
+// 3. Do not leave empty lines -- always precede with //
+//
+// Parameter 1: beta (Length of time horizon, type double)
+$beta
+//
+// Parameter 2: Nt (Number of time steps, type int)
+$Nt
+//
+// Parameter 3: a1 (weighting for desired trajectory, type double)
+$a1
+//
+// Parameter 4: a2 (weighting for target state, type double)
+$a2
+//
+// Parameter 5: q (weighting for initial condition, type double)
+$q
+//
+// Parameter 6: pp (right Robin parameter, type double)
+$pp
+//
+// Parameter 7: qq (left Robin parameter, type double)
+$qq
+//
+// Parameter 8: max_iter (type int)
+$max_iter
+//
+// Paramter 9: tol (type double)
+$tol
+//
+// Paramter 10: krylov (size of Krylov subspace, type int)
+$krylov
