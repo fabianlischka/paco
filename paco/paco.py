@@ -91,7 +91,7 @@ def main():
     params['Config']['DirCurrent'] = os.getcwd()
     params['Config']['DirConfig'] = configDir
     params['Config']['DirPacoRoot'] = pacoRootDir
-    params['Config']['DirPacoBin'] = os.path.join(pacoRootDir, 'src')
+    params['Config']['DirPacoBin'] = os.path.abspath(os.path.join(pacoRootDir, '..', 'src'))
 
     # what about stokes.edp?    # deal with in runStage1
 

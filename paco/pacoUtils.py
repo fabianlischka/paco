@@ -361,7 +361,7 @@ def readABCD(sourceDir=".", prefix=""):
 
 
 def writeParamsFile(params, pacoRootDir, destDir=".", prefix=""):
-    fpre = prefix + "s3_"
+    fpre = prefix + "s2_"
     templatePath = os.path.join(pacoRootDir, "template_params.txt")
     with open(templatePath, 'r') as f:
         template = string.Template(f.read())
