@@ -3,8 +3,9 @@ Config:
   DirsBin:
     - /u1/local/ff++/bin
     - /usr/local/bin
-  # NOTE: prefix will most likely be overridden
+  # NOTE: used if no prefix specified to paco
   Prefix_Default: pre_
+  Email: fabianlischka@hkbu.edu.hk
 
 runStage1:
   Script: stokes.edp
