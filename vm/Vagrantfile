@@ -28,4 +28,5 @@ Vagrant.configure("2") do |config|
   # pull the paco repository from github
   # NOTE: no need, as we sync the whole folder to /vagrant
   # config.vm.provision "shell", inline: "git clone https://github.com/fabianlischka/paco.git"
+  config.vm.provision "shell", inline: "sudo easy_install pyyaml"
 end
