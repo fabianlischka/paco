@@ -69,15 +69,15 @@ def main():
     # add/override options in params (prefix, dataDir, etc.)
     params['Config']['verbose'] = CLIoptions.verbose
     if CLIoptions.prefix is None:
-        if Prefix_default in params['Config']:
-            params['Config']['Prefix'] = params['Config']['Prefix_default']
+        if 'Prefix_Default' in params['Config']:
+            params['Config']['Prefix'] = params['Config']['Prefix_Default']
         else:
-            logging.error("No prefix provided, and no Prefix_default in config file.")
+            logging.error("No prefix provided, and no Prefix_Default in config file.")
             return -1
     else:
-        if Prefix_default in params['Config']:
-            msg = "Prefix provided (%s) used instead of Prefix_default (%)" % (
-                CLIoptions.prefix, params['Config']['Prefix_default']
+        if 'Prefix_Default' in params['Config']:
+            msg = "Prefix provided (%s) used instead of Prefix_Default (%)" % (
+                CLIoptions.prefix, params['Config']['Prefix_Default']
             )
             print(msg)
             logging.warn(msg)
