@@ -17,7 +17,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A must be square
   if (A->m != A->n)
     goto FAIL;
-  
+
   // A and B must have the same number of rows
   if (A->m != B->m)
     goto FAIL;
@@ -25,7 +25,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A, C and D must have the same number of columns
   if (A->n != C->n || A->n != D->n)
     goto FAIL;
-  
+
   return;
 
  FAIL:
@@ -84,16 +84,23 @@ int main(int argc, char **argv)
     requests[i] = MPI_REQUEST_NULL;
   }
 
-  // argv[1] contains local path
-  length = strlen(argv[1]);
+  // argv[1] contains local path, argv[2] contains prefix
+  if(argc < 3)
+  {
+    printf("Please specify directory in which to run, and prefix. Aborting...\n");
+    exit(3);
+  }
+  length = strlen(argv[1]) + 1 + strlen(argv[2]); // path/prefix
   fname = (char *)malloc((length+30)*sizeof(char));
   strcpy(fname, argv[1]);
+  strcat(fname, "/");
+  strcat(fname, argv[2]);
 
   //  printf("Hello, this is node %d of %d.\n",rank,size);
 
   // Read parameters from file
   param = (Param *)malloc(sizeof(Param));
-  strcat(fname, "/params.txt");
+  strcat(fname, "s2_params.txt");
   readParams_par(fname, param, 10);
   //  printf("Outside: beta = %10.5G\n",param->beta);
   //  printf("Outside: krylov = %d\n",param->krylov);
@@ -151,16 +158,16 @@ int main(int argc, char **argv)
   //  printf("Reading matrices...\n");
   /* Read in matrices */
   fname[length] = '\0';
-  strcat(fname, "/A.txt");
+  strcat(fname, "s2_A.txt");
   A = readMatrix_par(fname);
   fname[length] = '\0';
-  strcat(fname, "/B.txt");
+  strcat(fname, "s2_B.txt");
   B = readMatrix_par(fname);
   fname[length] = '\0';
-  strcat(fname, "/C.txt");
+  strcat(fname, "s2_C.txt");
   C = readMatrix_par(fname);
   fname[length] = '\0';
-  strcat(fname, "/D.txt");
+  strcat(fname, "s2_D.txt");
   D = readMatrix_par(fname);
   if (rank < size-1) {
     D = createIdentityMatrix(A->n);
@@ -206,13 +213,13 @@ int main(int argc, char **argv)
   yhat_glob = (double *)malloc(C->m*Nt*sizeof(double));
 
   fname[length] = '\0';
-  strcat(fname, "/yhat.txt");
+  strcat(fname, "s2_yhat.txt");
   readDoubleVector_par(fname, yhat_glob, C->m, 0, Nt);
 
   yhat = &yhat_glob[C->m*rank*Nt/size];
 
   // g2 = last vector of yhat
-  memcpy(g2, &(yhat_glob[(Nt-1)*C->m]), D->m);  
+  memcpy(g2, &(yhat_glob[(Nt-1)*C->m]), D->m);
 
   if (rank==0) {
     // Head node only
@@ -249,7 +256,7 @@ int main(int argc, char **argv)
     krylov = gndof;
   }
   if (rank==0) {
-    // Head node only    
+    // Head node only
     // For GMRES
     time2 = MPI_Wtime();
     rhs = (double *)malloc(gndof*sizeof(double));
@@ -283,7 +290,7 @@ int main(int argc, char **argv)
   // Initialize GMRES
   if (rank == 0) {
     fname[length] = '\0';
-    strcat(fname, "/err_gmres.txt");
+    strcat(fname, "s3_err_gmres.txt");
     fid = fopen(fname,"w");
     // Set correct rhs with inhomogeneous g and g2
     // g = 0
@@ -292,8 +299,8 @@ int main(int argc, char **argv)
     memcpy(rhs_copy+(A->n)*(2*size-1), finCond, A->n*sizeof(double));
 
     // rhs = -r
-    cblas_daxpy(gndof, -1.0, rhs_copy, 1, rhs, 1); 
-    
+    cblas_daxpy(gndof, -1.0, rhs_copy, 1, rhs, 1);
+
     //memset(rhs_copy, 0, gndof*sizeof(double));
     dfgmres_init(&gndof, rhs_copy, rhs, &RCI_request, ipar, dpar, tmp);
     if (RCI_request!=0) {
@@ -317,11 +324,11 @@ int main(int argc, char **argv)
     ipar[11]=1;          // No additional preconditioning
     ipar[14] = krylov;   // Also set Krylov subspace size to krylov
     dpar[0]=tol;
-  
+
     /*---------------------------------------------------------------------------
       /* Check the correctness and consistency of the newly set parameters
       /*---------------------------------------------------------------------------*/
-  
+
     dfgmres_check(&gndof, rhs_copy, rhs, &RCI_request, ipar, dpar, tmp);
     if (RCI_request!=0) {
       printf("GMRES initialization failed\n");
@@ -352,14 +359,14 @@ int main(int argc, char **argv)
       solveProblem(problem);
       residual(tmpsol, problem->sol, problem);
       computeOutboundTraces(rank==0, rank==size-1, pp, qq, problem);
-      
+
       MPI_Gather(g, 2*A->n, MPI_DOUBLE, w_ptr, 2*A->n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
       if (rank == 0) {
 	// Reset initial and final condition
 	memcpy(w_ptr, initCond, A->n*sizeof(double));
 	memcpy(w_ptr+A->n*(2*size-1), finCond, A->n*sizeof(double));
-	
+
 	// Subtract to get jump of traces
 	offset = 0;
 	cblas_daxpy(A->n, -1.0, v_ptr, 1, w_ptr, 1);
@@ -370,7 +377,7 @@ int main(int argc, char **argv)
 	  offset += 2*A->n;
 	}
 	cblas_daxpy(A->n, -1.0, v_ptr+offset, 1, w_ptr+offset, 1);
-      
+
 	// Now subtract RHS to get homogeneous problem
 	cblas_daxpy(gndof, 1.0, rhs, 1, w_ptr, 1);  /* w_ptr -= r; */
       }
@@ -383,7 +390,7 @@ int main(int argc, char **argv)
   if (RCI_request==0) {
     // GMRES converged, get solution
     if (rank == 0) {
-      dfgmres_get(&gndof, rhs_copy, rhs, &RCI_request, ipar, dpar, tmp, &it_count);    
+      dfgmres_get(&gndof, rhs_copy, rhs, &RCI_request, ipar, dpar, tmp, &it_count);
 
       // toc
       time1 = MPI_Wtime();
@@ -403,7 +410,7 @@ int main(int argc, char **argv)
 
   // Check solution
   fname[length] = '\0';
-  strcat(fname, "/sol.txt");
+  strcat(fname, "s3_sol.txt");
   readRefSol_par(fname, tmpsol, rank, size, Nt, A->n, B->n);
   cblas_daxpy(Nti*(B->n), -1.0, &(problem->sol[A->n]), 1, &(tmpsol[A->n]), 1);
   i = cblas_idamax(Nti*(B->n), &(tmpsol[A->n]), 1);
@@ -412,15 +419,15 @@ int main(int argc, char **argv)
   if (rank==0) {
     fclose(fid);
   }
-  /*  
+  /*
   // Write solution
   count = 0;
   for (i=0; i < A->n*Nti; i++) {
     printf("out: %d %d %20.16g\n",rank,count++,problem->yy[i]);
   }
   */
-  
-  // Clean up workspaces 
+
+  // Clean up workspaces
   if (rank == 0) {
     free(rhs);
     free(rhs_copy);
@@ -429,5 +436,3 @@ int main(int argc, char **argv)
 
   return (0);
 }
-
-

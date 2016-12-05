@@ -17,7 +17,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A must be square
   if (A->m != A->n)
     goto FAIL;
-  
+
   // A and B must have the same number of rows
   if (A->m != B->m)
     goto FAIL;
@@ -25,7 +25,7 @@ void checkConsistency(Matrix *A, Matrix *B, Matrix *C, Matrix *D)
   // A, C and D must have the same number of columns
   if (A->n != C->n || A->n != D->n)
     goto FAIL;
-  
+
   return;
 
  FAIL:
@@ -70,14 +70,21 @@ int main(int argc, char **argv)
 
   //  max_iter = 140;
 
-  // argv[1] contains local path
-  length = strlen(argv[1]);
+  // argv[1] contains local path, argv[2] contains prefix
+  if(argc < 3)
+  {
+    printf("Please specify directory in which to run, and prefix. Aborting...\n");
+    exit(3);
+  }
+  length = strlen(argv[1]) + 1 + strlen(argv[2]); // path/prefix
   fname = (char *)malloc((length+30)*sizeof(char));
   strcpy(fname, argv[1]);
+  strcat(fname, "/");
+  strcat(fname, argv[2]);
 
   // Read parameters from file
   param = (Param *)malloc(sizeof(Param));
-  strcat(fname, "/params.txt");
+  strcat(fname, "s2_params.txt");
   readParams_par(fname, param, 8);
 
   /* Time horizon and time steps */
@@ -117,17 +124,18 @@ int main(int argc, char **argv)
   printf("Reading matrices...\n");
   /* Read in matrices */
   fname[length] = '\0';
-  strcat(fname, "/A.txt");
+  strcat(fname, "s2_A.txt");
   A = readMatrix_par(fname);
   fname[length] = '\0';
-  strcat(fname, "/B.txt");
+  strcat(fname, "s2_B.txt");
   B = readMatrix_par(fname);
   fname[length] = '\0';
-  strcat(fname, "/C.txt");
+  strcat(fname, "s2_C.txt");
   C = readMatrix_par(fname);
   fname[length] = '\0';
-  strcat(fname, "/D.txt");
+  strcat(fname, "s2_D.txt");
   D = readMatrix_par(fname);
+  /* ? */
   if (rank < size-1) {
     D = createIdentityMatrix(A->n);
   }
@@ -146,7 +154,7 @@ int main(int argc, char **argv)
 
   // Read reference solution
   fname[length] = '\0';
-  strcat(fname, "/sol.txt");
+  strcat(fname, "s3_sol.txt");
   readRefSol_par(fname, refsol, rank, size, Nt, A->n, B->n);
 
 
@@ -169,13 +177,13 @@ int main(int argc, char **argv)
   yhat_glob = (double *)malloc(C->m*Nt*sizeof(double));
 
   fname[length] = '\0';
-  strcat(fname, "/yhat.txt");
+  strcat(fname, "s2_yhat.txt");
   readDoubleVector_par(fname, yhat_glob, C->m, 0, Nt);
 
   yhat = &yhat_glob[C->m*rank*Nt/size];
 
   // g2 = last vector of yhat
-  memcpy(g2, &(yhat_glob[(Nt-1)*C->m]), D->m);  
+  memcpy(g2, &(yhat_glob[(Nt-1)*C->m]), D->m);
 
 
   /*
@@ -237,7 +245,7 @@ int main(int argc, char **argv)
 	buf1 = g2;
       }
     }
-    
+
     /* Ready to get new initial and final data */
     if (iter < max_iter-1) {
       if (rank > 0) {
@@ -250,7 +258,7 @@ int main(int argc, char **argv)
 
     /* Do local solve */
     solveProblem(problem);
-    
+
     // Check solution
     memcpy(&(tmpsol[A->n]), &(refsol[A->n]), Nti*(B->n)*sizeof(double));
     cblas_daxpy(Nti*(B->n), -1.0, &(problem->sol[A->n]), 1, &(tmpsol[A->n]), 1);
