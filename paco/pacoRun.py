@@ -198,6 +198,12 @@ def runStage3(params):
                        params['Config']['DirPacoRoot'],
                        destDir=destDir, prefix=prefix)
 
+    # Generate y_hat if necessary
+    yhat = np.array(params['runStage3']['Params']['yhat'])
+    # logging.info("Writing yhat, ")
+    fn = os.path.join(destDir, prefix+"s2_yhat.txt")
+    yhat.tofile(fn, sep="\n", format="%r")
+
     # execute targets
     for target in params['runStage3']['Targets']:
         fullTarget = os.path.join(binDir, target)
