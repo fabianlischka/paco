@@ -64,7 +64,7 @@ def main():
     with open(configPath, 'r') as f:
         params = yaml.load(f)
 
-    print(params)
+    # print(params)
 
     # add/override options in params (prefix, dataDir, etc.)
     params['Config']['verbose'] = CLIoptions.verbose
@@ -76,7 +76,7 @@ def main():
             return -1
     else:
         if 'Prefix_Default' in params['Config']:
-            msg = "Prefix provided (%s) used instead of Prefix_Default (%)" % (
+            msg = "Prefix provided (%s) used instead of Prefix_Default (%s)" % (
                 CLIoptions.prefix, params['Config']['Prefix_Default']
             )
             print(msg)

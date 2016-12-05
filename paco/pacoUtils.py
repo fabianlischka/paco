@@ -12,7 +12,7 @@ _pathFF = None
 
 def getPathFF(extraPaths):
     global _searchPath, _pathFF
-    for extraPath in _extraPaths:
+    for extraPath in extraPaths:
         if _searchPath.find(extraPath) == -1:
             _searchPath += (os.pathsep + extraPath)
     if _pathFF is None:
@@ -292,6 +292,17 @@ def read_csr_matrix(f):
     logging.info(
         "successfully read (%s x %s) matrix in CSR format with nnz %s.",
         m, n, nnz)
+    return res
+
+
+def matrixFromConfig(params, defaultCol):
+    m, n = params['size']
+    if n is None or n == 'None':
+        n = defaultCol
+    res = np.zeros((m,n))
+    for nzelem in params['nzelems']:
+        i, j, val = nzelem
+        res[i, j] = val
     return res
 
 

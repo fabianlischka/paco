@@ -199,7 +199,8 @@ def runStage2(params):
     nu = params['runStage2']['nu']
     # compute A, B using fvm
     A, B = getAB(mm, kk, bb, u, v, vv, ff, nu)
-    C, D = params['runStage2']['C'], params['runStage2']['D']
+    C = pu.matrixFromConfig(params['runStage2']['C'], A.shape[1])
+    D = pu.matrixFromConfig(params['runStage2']['D'], A.shape[1])
 
     # NOTE hardcoded parameters: C, D
     # C = np.zeros((1, 736))

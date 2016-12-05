@@ -6,24 +6,24 @@ Config:
   # NOTE: prefix will most likely be overridden
   Prefix_Default: pre_
 
-RunStage1:
+runStage1:
   Script: stokes.edp
 
-RunStage2:
+runStage2:
   nu: 0.01
   # specify the matrices C and D:
   # give size as [m,n], non-zero elems as list of [i,j,x] (i,j zero-based)
   # NOTE: if n is given as None, will guess (from size of A)
   C:
-    size: [1, 736]
+    size: [1, None]
     nzelems:
       - [0, 699, 24.3250697381654]
   D:
-    size: [1, 736]
+    size: [1, None]
     nzelems:
       - [0, 699, 24.3250697381654]
 
-RunStage3:
+runStage3:
   # Parameter 1: beta (Length of time horizon, type double)
   beta: 32.0
   # Parameter 2: Nt (Number of time steps, type int)
