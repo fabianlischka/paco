@@ -46,10 +46,12 @@ def main():
         dataDir = configDir
     dataDir = os.path.abspath(dataDir)
 
-    if not os.path.isdir(dataDir):
-        msg = "directory not found: %s" % dataDir
-        logging.error(msg)
-        return -1
+    # if not os.path.isdir(dataDir):
+    #     msg = "directory not found: %s" % dataDir
+    #     logging.error(msg)
+    #     return -1
+
+    pu.ensurePath(dataDir)
 
     # now, read config
     # if the file does not end with yaml, warn
@@ -84,9 +86,12 @@ def main():
         params['Config']['Prefix'] = CLIoptions.prefix
 
     # record directories
+    pacoRootDir = os.path.abspath(os.path.dirname(pacoRun.__file__))
     params['Config']['DirData'] = dataDir
     params['Config']['DirCurrent'] = os.getcwd()
     params['Config']['DirConfig'] = configDir
+    params['Config']['DirPacoRoot'] = pacoRootDir
+    params['Config']['DirPacoBin'] = os.path.join(pacoRootDir, 'src')
 
     # what about stokes.edp?    # deal with in runStage1
 

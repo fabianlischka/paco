@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import os
 import os.path
+import shutil
 import string
 
 
@@ -296,6 +297,15 @@ def read_csr_matrix(f):
 
 
 def matrixFromConfig(params, defaultCol):
+    """Create matrix (ndarray) from dict containing 'size', 'nzelems'.
+
+    Creates a matrix given a dictionary read from a YAML fragment as below:
+      # give size as [m,n], non-zero elems as list of [i,j,x] (i,j zero-based)
+      # NOTE: if n is given as None, will use defaultCol provided.
+        size: [1, None]
+        nzelems:
+          - [0, 699, 24.3250697381654]
+    """
     m, n = params['size']
     if n is None or n == 'None':
         n = defaultCol
@@ -304,6 +314,28 @@ def matrixFromConfig(params, defaultCol):
         i, j, val = nzelem
         res[i, j] = val
     return res
+
+
+def copyIfNecessary(oldFullPath, destDir, fpre):
+    # determine destination directory, copy source file over if necessary
+    sourceDir, sourceBasename = os.path.split(oldFullPath)
+    if len(sourceDir) == 0:
+        sourceDir = "."
+
+    ensurePath(destDir)
+
+    if sourceBasename.startswith(fpre):
+        newBasename = sourceBasename
+    else:
+        newBasename = fpre + sourceBasename
+
+    destFullPath = os.path.join(destDir, newBasename)
+    if ( not os.path.isfile(destFullPath) or
+        (not os.path.samefile(oldFullPath, destFullPath))):
+        # copy
+        logging.info("Copying %s to %s", oldFullPath, destFullPath)
+        shutil.copyfile(oldFullPath, destFullPath)
+    return newBasename
 
 
 def writeABCD(A, B, C, D, destDir=".", prefix=""):
@@ -328,9 +360,10 @@ def readABCD(sourceDir=".", prefix=""):
     return A, B, C, D
 
 
-def writeParamsFile(params, destDir=".", prefix=""):
+def writeParamsFile(params, pacoRootDir, destDir=".", prefix=""):
     fpre = prefix + "s3_"
-    with open('template_params.txt', 'r') as f:
+    templatePath = os.path.join(pacoRootDir, "template_params.txt")
+    with open(templatePath, 'r') as f:
         template = string.Template(f.read())
     outfile = template.substitute(params)
     with open(os.path.join(destDir, fpre+"params.txt"), 'w') as f:

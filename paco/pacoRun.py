@@ -3,7 +3,6 @@ import numpy as np
 import os
 import os.path
 import pacoUtils as pu
-import shutil
 import subprocess
 import yaml
 
@@ -149,24 +148,7 @@ def runStage1(params):
         logging.warn("stage 1: scriptPath does not end with .edp: %s", scriptPath)
 
     # determine destination directory, copy source file over if necessary
-    sourceDir, sourceBasename = os.path.split(scriptPath)
-    if len(sourceDir) == 0:
-        sourceDir = "."
-
-    pu.ensurePath(destDir)
-
-    fpre = prefix + "s0_"
-    if sourceBasename.startswith(fpre):
-        newBasename = sourceBasename
-    else:
-        newBasename = fpre + sourceBasename
-
-    destFullPath = os.path.join(destDir, newBasename)
-    if ( not os.path.isfile(destFullPath) or
-        (not os.path.samefile(scriptPath, destFullPath))):
-        # copy
-        logging.info("stage 1: copying from %s to %s", scriptPath, destFullPath)
-        shutil.copyfile(scriptPath, destFullPath)
+    newBasename = pu.copyIfNecessary(scriptPath, destDir, prefix + "s0_")
 
     logLevelFF = 0
     if logging.getLogger().getEffectiveLevel() < 20:
@@ -202,15 +184,24 @@ def runStage2(params):
     C = pu.matrixFromConfig(params['runStage2']['C'], A.shape[1])
     D = pu.matrixFromConfig(params['runStage2']['D'], A.shape[1])
 
-    # NOTE hardcoded parameters: C, D
-    # C = np.zeros((1, 736))
-    # C[0, 699] = 2.4325069738165400e+01
-    # D = C
-
     # write next intermediate files
     pu.writeABCD(A, B, C, D, destDir=destDir, prefix=prefix)
 
 
-def runStage3(sourceDir, prefix="pre_"):
-    # ../src/control_main /home/lischka/paco/runs felix2_
-    pass
+def runStage3(params):
+    destDir = params['Config']['DirData']
+    binDir = params['Config']['DirPacoBin']
+    prefix = params['Config']['Prefix']
+
+    # Generate params.txt
+    pu.writeParamsFile(params['runStage3']['Params'],
+                       params['Config']['DirPacoRoot'],
+                       destDir=destDir, prefix=prefix)
+
+    # execute targets
+    for target in params['runStage3']['Targets']:
+        fullTarget = os.path.join(binDir, target)
+        logging.info("Executing %s in dir %s with prefix %s.",
+                    fullTarget, destDir, prefix)
+        subprocess.check_call([fullTarget, destDir, prefix],
+                          cwd=destDir)
