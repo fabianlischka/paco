@@ -115,7 +115,7 @@ def getAB(mm, kk, bb, u, v, vv, ff, nu):
     return A, B
 
 
-def runStage1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
+def runStage1(params):
     """Run given file through FreeFem++ to obtain s1 files.
 
     Prefixes the given .edp file with given prefix + "s0_",
@@ -124,20 +124,34 @@ def runStage1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
     Then, runs FreeFem++ on it.
     """
 
-    if pathFF is None:
-        pathFF = pu.getPathFF()
+    pathFF = pu.getPathFF(params['Config']['DirsBin'])
+    destDir = params['Config']['DirData']
+    prefix  = params['Config']['Prefix']
+    # find the script
+    scriptName = params['runStage1']['Script']
+    scriptPath = None
+    scriptDirs = [params['Config']['DirConfig'], params['Config']['DirCurrent'],
+                 params['Config']['DirData'] ]
+    for scriptDir in scriptDirs:
+        scriptPath = os.path.join(scriptDir, scriptName)
+        if os.path.isfile(scriptPath):
+            break
+    if scriptPath is None:
+        msg = "Stage 1: could not find script %s in directories %s." % (
+            scriptName, ", ".join(scriptDirs) )
+        print(msg)
+        logging.critical(msg)
+        raise RuntimeError(msg)
 
     # if the file does not end with edp, warn
-    fileExtension = os.path.splitext(sourceFullPath)[1]
+    fileExtension = os.path.splitext(scriptPath)[1]
     if fileExtension != ".edp":
-        logging.warn("stage 1: sourceFullPath does not end with .edp: %s", sourceFullPath)
+        logging.warn("stage 1: scriptPath does not end with .edp: %s", scriptPath)
 
     # determine destination directory, copy source file over if necessary
-    sourceDir, sourceBasename = os.path.split(sourceFullPath)
+    sourceDir, sourceBasename = os.path.split(scriptPath)
     if len(sourceDir) == 0:
         sourceDir = "."
-    if destDir is None:
-        destDir = sourceDir
 
     pu.ensurePath(destDir)
 
@@ -149,10 +163,10 @@ def runStage1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
 
     destFullPath = os.path.join(destDir, newBasename)
     if ( not os.path.isfile(destFullPath) or
-        (not os.path.samefile(sourceFullPath, destFullPath))):
+        (not os.path.samefile(scriptPath, destFullPath))):
         # copy
-        logging.info("stage 1: copying from %s to %s", sourceFullPath, destFullPath)
-        shutil.copyfile(sourceFullPath, destFullPath)
+        logging.info("stage 1: copying from %s to %s", scriptPath, destFullPath)
+        shutil.copyfile(scriptPath, destFullPath)
 
     logLevelFF = 0
     if logging.getLogger().getEffectiveLevel() < 20:
@@ -168,7 +182,9 @@ def runStage1(sourceFullPath, prefix="pre_", destDir=None, pathFF=None):
     pass
 
 
-def runStage2(sourceDir, prefix="pre_", params):
+def runStage2(params):
+    sourceDir = params['Config']['DirData']
+    prefix = params['Config']['Prefix']
     destDir = sourceDir
     fpre = prefix + "s1_" # full prefix
 
@@ -180,10 +196,10 @@ def runStage2(sourceDir, prefix="pre_", params):
     v  = pu.with_file(os.path.join(sourceDir, fpre+'v.txt'), pu.readVectFF)
     vv, ff, ee = pu.with_file(os.path.join(sourceDir, fpre+'stokes.msh'), pu.readMeshFF)
 
-    nu = params.runStage2.nu
+    nu = params['runStage2']['nu']
     # compute A, B using fvm
     A, B = getAB(mm, kk, bb, u, v, vv, ff, nu)
-    C, D = params.runStage2.C, params.runStage2.D
+    C, D = params['runStage2']['C'], params['runStage2']['D']
 
     # NOTE hardcoded parameters: C, D
     # C = np.zeros((1, 736))
@@ -192,6 +208,7 @@ def runStage2(sourceDir, prefix="pre_", params):
 
     # write next intermediate files
     pu.writeABCD(A, B, C, D, destDir=destDir, prefix=prefix)
+
 
 def runStage3(sourceDir, prefix="pre_"):
     # ../src/control_main /home/lischka/paco/runs felix2_

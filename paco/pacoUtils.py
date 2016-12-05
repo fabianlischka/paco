@@ -7,14 +7,14 @@ import string
 
 
 # Config
-_extraPaths = ['/u1/local/ff++/bin', '/usr/local/bin']
 _searchPath = os.environ['PATH']
 _pathFF = None
-for extraPath in _extraPaths:
-    _searchPath += (os.pathsep + extraPath)
 
-def getPathFF():
-    global _extraPaths, _searchPath, _pathFF
+def getPathFF(extraPaths):
+    global _searchPath, _pathFF
+    for extraPath in _extraPaths:
+        if _searchPath.find(extraPath) == -1:
+            _searchPath += (os.pathsep + extraPath)
     if _pathFF is None:
         logging.debug("attempt to find FreeFem++-nw binary...")
         p =  spawn.find_executable("FreeFem++-nw", _searchPath)
@@ -317,7 +317,7 @@ def readABCD(sourceDir=".", prefix=""):
     return A, B, C, D
 
 
-def writeParamsFile(destDir=".", prefix="", params):
+def writeParamsFile(params, destDir=".", prefix=""):
     fpre = prefix + "s3_"
     with open('template_params.txt', 'r') as f:
         template = string.Template(f.read())

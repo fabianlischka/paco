@@ -3,6 +3,7 @@ import logging
 import optparse
 import os.path
 import pacoRun
+import pacoUtils as pu
 import yaml
 
 stepsToRun = [pacoRun.runStage1, pacoRun.runStage2, pacoRun.runStage3]
@@ -24,13 +25,12 @@ def main():
 
     # set up logging
     logLevel = logging.WARNING
-    if options.verbose:
+    if CLIoptions.verbose:
         logLevel = logging.DEBUG
 
     logging.basicConfig(
             level=logLevel,
             format='%(asctime)s. %(levelname)s in %(funcName)s: %(message)s')
-
 
     # get first arg: configPath
     configPath = arguments[0]
@@ -44,13 +44,12 @@ def main():
         dataDir = arguments[1]
     else:
         dataDir = configDir
+    dataDir = os.path.abspath(dataDir)
 
     if not os.path.isdir(dataDir):
         msg = "directory not found: %s" % dataDir
         logging.error(msg)
         return -1
-
-    dataDir = os.path.abspath(dataDir)
 
     # now, read config
     # if the file does not end with yaml, warn
@@ -65,14 +64,43 @@ def main():
     with open(configPath, 'r') as f:
         params = yaml.load(f)
 
-    # add/override prefix, dataDir in params
+    print(params)
 
-    # what about stokes.edp?
+    # add/override options in params (prefix, dataDir, etc.)
+    params['Config']['verbose'] = CLIoptions.verbose
+    if CLIoptions.prefix is None:
+        if Prefix_default in params['Config']:
+            params['Config']['Prefix'] = params['Config']['Prefix_default']
+        else:
+            logging.error("No prefix provided, and no Prefix_default in config file.")
+            return -1
+    else:
+        if Prefix_default in params['Config']:
+            msg = "Prefix provided (%s) used instead of Prefix_default (%)" % (
+                CLIoptions.prefix, params['Config']['Prefix_default']
+            )
+            print(msg)
+            logging.warn(msg)
+        params['Config']['Prefix'] = CLIoptions.prefix
+
+    # record directories
+    params['Config']['DirData'] = dataDir
+    params['Config']['DirCurrent'] = os.getcwd()
+    params['Config']['DirConfig'] = configDir
+
+    # what about stokes.edp?    # deal with in runStage1
 
     # dump actually used params to new location
-
+    pu.ensurePath(dataDir)
+    if not configBasename.startswith(params['Config']['Prefix']):
+        configBasename_new = params['Config']['Prefix'] + "s0_" + configBasename
+    else:
+        configBasename_new = configBasename
+    with open(os.path.join(dataDir, configBasename_new), "w") as f:
+        yaml.dump(params, f)
 
     runStages(params)
+    logging.shutdown()
 
 
 def runStages(params):
@@ -81,24 +109,9 @@ def runStages(params):
         fname = func.func_name
         if fname in params:
             msg = "Executing %s." % fname
+            print(msg)
+            logging.info(msg)
             func(params)
-
-
-    # S1
-    msg = "Run stage 1 on '%s' with prefix '%s' into dir '%s'." % (sourceFullPath, prefix, destDir)
-    print(msg)
-    logging.info(msg)
-    pacoRun.runS1(sourceFullPath=sourceFullPath, prefix=prefix, destDir=destDir)
-    # S2
-    msg = "Run stage 2 with prefix '%s' in dir '%s'." % (prefix, destDir)
-    print(msg)
-    logging.info(msg)
-    pacoRun.runS2(sourceDir=destDir, prefix=prefix)
-
-    logging.shutdown()
-
-
-
 
 
 if __name__ == '__main__':

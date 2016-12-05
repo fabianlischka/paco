@@ -1,13 +1,13 @@
 ---
 Config:
-  Paths:
+  DirsBin:
     - /u1/local/ff++/bin
     - /usr/local/bin
   # NOTE: prefix will most likely be overridden
-  Prefix: pre_
+  Prefix_Default: pre_
 
 RunStage1:
-  Target: stokes.edp
+  Script: stokes.edp
 
 RunStage2:
   nu: 0.01
