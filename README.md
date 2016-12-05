@@ -420,19 +420,23 @@ OBSOLETE - Instead, use "synched-folder" type `SMB` on Windows, or just `virtual
 * if upon `vagrant up`, rsync fails because of a wrong path (`/c/foo/bar` instead
   of `C:/foo/bar`), you'll have to hack a vagrant ruby file,
   `C:\HashiCorp\Vagrant\embedded\gems\gems\vagrant-1.8.6\plugins\synced_folders\rsync\helper.rb`, to replace
+
   ```
   if Vagrant::Util::Platform.windows?
     # rsync for Windows expects cygwin style paths, always.
     hostpath = Vagrant::Util::Platform.cygwin_path(hostpath)
   end
   ```
+
   by
+
   ```
   if Vagrant::Util::Platform.windows?
     # rsync for Windows expects cygwin style paths, always.
     hostpath = "/cygdrive" + Vagrant::Util::Platform.cygwin_path(hostpath)
   end
   ```
+
   that is, add `/cygdrive` in front of the path. See [issue #3230](https://github.com/mitchellh/vagrant/issues/3230) for more.
 
 
@@ -447,6 +451,7 @@ see below wget command
 * prerequisites: lapack, arpack, suitesparse, general development tools -
 `sudo yum install -y lapack-devel.x86_64 arpack-devel.x86_64 suitesparse-devel.x86_64`
 * make like this:
+
 ```
 wget http://www.freefem.org/ff++/ftp/freefem++-3.49.tar.gz -O ff.tar.gz
 tar zxvf ff.tar.gz
@@ -465,4 +470,5 @@ make install
 cd examples++-tutorial
 FreeFem++-nw LaplaceP1.edp
 ```
+
 * note: for me, distance.cpp in examples++-load failed - just delete it or rename .cpp-skip, and remove all references to distance in examples++-load/Makefile
