@@ -118,8 +118,7 @@ int main(int argc, char **argv)
     dtmp += h;
   }
   */
-
-  printf("reading yhat...");
+  printf("reading yhat...\n");
   fname[length] = '\0';
   strcat(fname, "s2_yhat.txt");
   readDoubleVector(fname, yhat, C->m*Nt);
@@ -168,4 +167,5 @@ int main(int argc, char **argv)
   fclose(fid);
 
   printf("Done.\n");
+  return 0;
 }
