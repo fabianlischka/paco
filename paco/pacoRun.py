@@ -211,3 +211,19 @@ def runStage3(params):
                     fullTarget, destDir, prefix)
         subprocess.check_call([fullTarget, destDir, prefix],
                           cwd=destDir)
+
+def runBatch(params, binaryFullPath):
+    # Substitute:
+    # Email: ${Email}
+    # BinaryFullPath: ${BinaryFullPath}
+    # DirData: ${DirData}
+    # Prefix: ${Prefix}
+    destDir = params['Config']['DirData']
+    prefix = params['Config']['Prefix']
+
+    substitutions = params['Config'] # contains Email, DirData, Prefix
+    substitutions['BinaryFullPath'] = binaryFullPath
+    outPath = pu.writeBatchFile( substitutions,
+                       params['Config']['DirPacoRoot'],
+                       destDir=destDir, prefix=prefix )
+    subprocess.check_call(['qsub', outPath])

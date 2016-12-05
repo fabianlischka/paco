@@ -360,14 +360,28 @@ def readABCD(sourceDir=".", prefix=""):
     return A, B, C, D
 
 
-def writeParamsFile(params, pacoRootDir, destDir=".", prefix=""):
+def writeParamsFile(substitutions, pacoRootDir, destDir=".", prefix=""):
     fpre = prefix + "s2_"
     templatePath = os.path.join(pacoRootDir, "template_params.txt")
     with open(templatePath, 'r') as f:
         template = string.Template(f.read())
-    outfile = template.substitute(params)
-    with open(os.path.join(destDir, fpre+"params.txt"), 'w') as f:
+    outfile = template.substitute(substitutions)
+    outPath = os.path.join(destDir, fpre+"params.txt")
+    with open(outPath, 'w') as f:
         f.write(outfile)
+    return outPath
+
+
+def writeBatchFile(substitutions, pacoRootDir, destDir=".", prefix=""):
+    fpre = prefix + "s3_"
+    templatePath = os.path.join(pacoRootDir, "template_batch.pbs")
+    with open(templatePath, 'r') as f:
+        template = string.Template(f.read())
+    outfile = template.substitute(substitutions)
+    outPath = os.path.join(destDir, fpre+"batch.pbs")
+    with open(outPath, 'w') as f:
+        f.write(outfile)
+    return outPath
 
 
 def ensurePath(path):
