@@ -14,7 +14,7 @@ void checkAlloc(void *ptr, char *proc_name, int size) {
   }
 }
 
-Matrix *readMatrix(char *filename) 
+Matrix *readMatrix(char *filename)
 {
   Matrix *A;
   FILE *fid;
@@ -56,7 +56,7 @@ Matrix *readMatrix(char *filename)
 }
 
 
-Matrix *readMatrix_par(char *filename) 
+Matrix *readMatrix_par(char *filename)
 {
   Matrix *A;
   MPI_File fid;
@@ -115,7 +115,7 @@ void io_main(int argc, char **argv) {
   char *filename;
   Matrix *A;
   int i, j;
-  
+
   filename = argv[1];
   A = readMatrix(filename);
   printf("Size of A is %d by %d\n",A->m, A->n);
@@ -133,6 +133,14 @@ void readDoubleVector(char *filename, double *dest, int n)
   int i;
 
   fid = fopen(filename,"r");
+  if (fid == NULL) {
+    printf("File %s does not exist\n",filename);
+    exit(1);
+  }
+  else {
+    printf("Reading from %s\n",filename);
+  }
+
   for (i=0; i < n; i++) {
     fscanf(fid, "%lg", &(dest[i]));
   }
@@ -162,7 +170,7 @@ void readDoubleVector_par(char *filename, double *dest, int n, int start, int st
   chunk[filesize-1] = '\0';
 
   count = 0;
-  
+
   tok = strtok(chunk, " \n");
   for (i=0; i < n*start; i++) {
     tok = strtok(NULL, " \n");
@@ -183,6 +191,14 @@ void readRefSol(char *filename, double *tmpsol, int rank, int size, int Nt, int 
   int start, stop;
 
   fid = fopen(filename,"r");
+  if (fid == NULL) {
+    printf("File %s does not exist\n",filename);
+    exit(1);
+  }
+  else {
+    printf("Reading from %s\n",filename);
+  }
+
   for (i=0; i < An; i++) {
     fscanf(fid,"%le", &tmp);
   }
@@ -338,7 +354,7 @@ void readParams_par(char *filename, Param *param, int numParams)
   chunk[filesize-1] = '\0';
 
   count = 0;
-  
+
   tok = strtok(chunk, "\n");
   while (count < numParams) {
     //    printf("%s",tok);
