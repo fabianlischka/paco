@@ -25,8 +25,13 @@ runStage2:
       - [0, 699, 24.3250697381654]
 
 runStage3:
-  Targets:
-    - control_main
+  SubStages:
+    - Method: direct
+      Target: control_main
+    - Method: batch
+      Target: dd_main
+    - Mathod: batch
+      Target: dd_gmres
   Params:
     # Parameter 1: beta (Length of time horizon, type double)
     beta: 32.0

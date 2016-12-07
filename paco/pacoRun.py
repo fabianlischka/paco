@@ -187,7 +187,6 @@ def runStage2(params):
     # write next intermediate files
     pu.writeABCD(A, B, C, D, destDir=destDir, prefix=prefix)
 
-
 def runStage3(params):
     destDir = params['Config']['DirData']
     binDir = params['Config']['DirPacoBin']
@@ -199,27 +198,29 @@ def runStage3(params):
                        destDir=destDir, prefix=prefix)
 
     # Generate y_hat if necessary
-    yhat = np.array(params['runStage3']['Params']['yhat'])
-    # logging.info("Writing yhat, ")
-    fn = os.path.join(destDir, prefix+"s2_yhat.txt")
-    yhat.tofile(fn, sep="\n", format="%r")
+    if 'yhat' in params['runStage3']['Params']:
+        yhat = np.array(params['runStage3']['Params']['yhat'])
+        fn = os.path.join(destDir, prefix+"s2_yhat.txt")
+        yhat.tofile(fn, sep="\n", format="%r")
 
     # execute targets
-    for target in params['runStage3']['Targets']:
-        fullTarget = os.path.join(binDir, target)
+    for subStage in params['runStage3']['SubStages']:
+        funcToCall = subStageMethods[subStage['Method']]
+        binaryFullPath = os.path.join(binDir, subStage['Target'])
         logging.info("Executing %s in dir %s with prefix %s.",
-                    fullTarget, destDir, prefix)
-        subprocess.check_call([fullTarget, destDir, prefix],
+                    binaryFullPath, destDir, prefix)
+        funcToCall(params, binaryFullPath, destDir, prefix)
+
+def subStageDirect(params, binaryFullPath, destDir, prefix):
+    subprocess.check_call([binaryFullPath, destDir, prefix],
                           cwd=destDir)
 
-def runBatch(params, binaryFullPath):
+def subStageBatch(params, binaryFullPath, destDir, prefix):
     # Substitute:
     # Email: ${Email}
     # BinaryFullPath: ${BinaryFullPath}
     # DirData: ${DirData}
     # Prefix: ${Prefix}
-    destDir = params['Config']['DirData']
-    prefix = params['Config']['Prefix']
 
     substitutions = params['Config'] # contains Email, DirData, Prefix
     substitutions['BinaryFullPath'] = binaryFullPath
@@ -227,3 +228,6 @@ def runBatch(params, binaryFullPath):
                        params['Config']['DirPacoRoot'],
                        destDir=destDir, prefix=prefix )
     subprocess.check_call(['qsub', outPath])
+
+subStageMethods = { "direct" : subStageDirect,
+                    "batch"  : subStageBatch }
