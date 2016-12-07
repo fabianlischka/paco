@@ -30,7 +30,7 @@ runStage3:
       Target: control_main
     - Method: batch
       Target: dd_main
-    - Mathod: batch
+    - Method: batch
       Target: dd_gmres
   Params:
     # Parameter 1: beta (Length of time horizon, type double)
