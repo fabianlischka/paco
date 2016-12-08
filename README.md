@@ -28,38 +28,6 @@ interested in how the color flows. In particular, we would like it to be in a
 certain place at a certain time. When and where do we have to drop the color to
 have it as close to the target as possible?
 
-### Motivating Example: Details
-
-We start with an incompressible fluid flow in some 2d geometry, in steady state,
-which can be be described by the Stokes equation
-
-laplacian(U) = grad(p)
-div(U) = 0
-
-where U =(u(x,y), v(x,y)) is the fluid velocity (a vector field),
-and p =p(x,y) is its pressure (a scalar field).
-
-We then solve the advection-diffusion equation
-
-c_t = laplacian(c) - U . grad(c) + R
-
-choosing R to minimise the deviation of c.
-
-Note that FreeFem++ uses the weak formulation of the problem, ie multiply with
-a test function (nice and continuous etc., compact support), and integrate by
-parts over infinity = the support.
-
-### Quick reminder of vector notations
-
-* gradient of a scalar field s is a vector: (ds/dx, ds/dy, ...)
-* divergence of a vector field F=(F1,F2,...) is a scalar: dF1/dx + dF2/dy + ...
-* laplacian of a scalar field s is a scalar, namely the divergence of the gradient,
-akin to the "curvature". Heat equation (diffusion): ds/dt = c laplacian(s)
-* (vector) laplacian of a vector field F is (in cartesian coord's) the vector
-of the laplacians of the components of F,
-laplacian(F) = (laplacian(F1), laplacian(F2), ...)
-* product rule: div(sF) = grad(s) . F + s div(F), a scalar
-
 ### Formulation
 
 Given f=f(t), with t in (0,T), and matrices A, B,
@@ -129,8 +97,12 @@ you are good to go. On the cluster, run:
 # get this software
 git clone https://github.com/fabianlischka/paco.git
 cd paco
+# make
+cd src
+make
+cd ..
 # run a small example
-python src/paco.py -p myRun_ runs/stokes.edp
+python paco/paco.py runs/paco.config.yaml runs/TEST -pr1_
 ```
 
 ### To run on your machine (in a CentOS VM)
@@ -156,7 +128,7 @@ install the required software, including this.
   vagrant ssh
   cd /vagrant/   # this is synced to the paco folder on your host
   # run a small example
-  python src/paco.py -p myRun_ runs/stokes.edp
+  python paco/paco.py runs/paco.config.yaml runs/TEST -pr1_
   ```
 
 #### To run on your MacOS X machine
@@ -171,12 +143,12 @@ install the required software, including this.
   # get this software - it will be copied into a directory "paco"
   git clone https://github.com/fabianlischka/paco.git
   cd paco/vm/
-  vagrant plugin install vagrant-vbguest`
+  vagrant plugin install vagrant-vbguest
   vagrant up
   vagrant ssh
   cd /vagrant/   # this is synced to the paco folder on your host
   # run a small example
-  python src/paco.py -p myRun_ runs/stokes.edp
+  python paco/paco.py runs/paco.config.yaml runs/TEST -pr1_
   ```
 
 
@@ -195,8 +167,12 @@ Then
 # get this software
 git clone https://github.com/fabianlischka/paco.git
 cd paco
+# make
+cd src
+make
+cd ..
 # run a small example
-python src/paco.py -p myRun_ runs/stokes.edp
+python paco/paco.py runs/paco.config.yaml runs/TEST -pr1_
 ```
 
 
@@ -327,23 +303,55 @@ after installing PuTTY `putty -ssh lischka@sciblade.sci.hkbu.edu.hk`
     export LD_LIBRARY_PATH
     ```
 
+    ### Motivating Example: Details
+
+    We start with an incompressible fluid flow in some 2d geometry, in steady state,
+    which can be be described by the Stokes equation
+
+    laplacian(U) = grad(p)
+    div(U) = 0
+
+    where U =(u(x,y), v(x,y)) is the fluid velocity (a vector field),
+    and p =p(x,y) is its pressure (a scalar field).
+
+    We then solve the advection-diffusion equation
+
+    c_t = laplacian(c) - U . grad(c) + R
+
+    choosing R to minimise the deviation of c.
+
+    Note that FreeFem++ uses the weak formulation of the problem, ie multiply with
+    a test function (nice and continuous etc., compact support), and integrate by
+    parts over infinity = the support.
+
+    ### Quick reminder of vector notations
+
+    * gradient of a scalar field s is a vector: (ds/dx, ds/dy, ...)
+    * divergence of a vector field F=(F1,F2,...) is a scalar: dF1/dx + dF2/dy + ...
+    * laplacian of a scalar field s is a scalar, namely the divergence of the gradient,
+    akin to the "curvature". Heat equation (diffusion): ds/dt = c laplacian(s)
+    * (vector) laplacian of a vector field F is (in cartesian coord's) the vector
+    of the laplacians of the components of F,
+    laplacian(F) = (laplacian(F1), laplacian(F2), ...)
+    * product rule: div(sF) = grad(s) . F + s div(F), a scalar
+
 
 # AGENDA
 
-* [ ] make `make` work
+* [x] make `make` work
   * [x] rewrite makefile - shorten
   * [ ] fix libdat.so cludge (Morris?)
-* [ ] Running stages
+* [x] Running stages
   * [x] FreeFem++ on cluster
-  * [ ] sort out directory structure/naming convention
+  * [x] sort out directory structure/naming convention
   * [x] run stage 1
   * [x] run stage 2
-  * [ ] run stage 3
-  * [ ] refactor `run` functions
-  * [ ] refactor paco CLI: runall/runs1/...?
+  * [x] run stage 3
+  * [x] refactor `run` functions
+  * [x] refactor paco CLI: runall/runs1/...?
 * [ ] Testing
-  * [ ] compareS1 (text)
-  * [ ] compareS2 (float - ident, 2 norm, max)
+  * [x] compareS1 (text)
+  * [x] compareS2 (float - ident, 2 norm, max)
   * [ ] compareS3
   * [ ] include in paco CLI
 * [ ] VM setup
