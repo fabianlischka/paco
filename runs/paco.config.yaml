@@ -26,12 +26,12 @@ runStage2:
 
 runStage3:
   SubStages:
-    - Method: direct
-      Target: control_main
-    - Method: batch
-      Target: dd_main
-    - Method: batch
-      Target: dd_gmres
+    - Target: control_main
+      Template: None
+    - Target: dd_main
+      Template: template_batch.pbs
+    - Target: dd_gmres
+      Template: template_batch.pbs
   Params:
     # Parameter 1: beta (Length of time horizon, type double)
     beta: 32.0

@@ -205,29 +205,32 @@ def runStage3(params):
 
     # execute targets
     for subStage in params['runStage3']['SubStages']:
-        funcToCall = subStageMethods[subStage['Method']]
+        template = subStage['Template']
+        if template is None or template == "None":
+            funcToCall = subStageDirect
+        else:
+            funcToCall = subStageBatch
         binaryFullPath = os.path.join(binDir, subStage['Target'])
         logging.info("Executing %s in dir %s with prefix %s.",
                     binaryFullPath, destDir, prefix)
-        funcToCall(params, binaryFullPath, destDir, prefix)
+        funcToCall(params, binaryFullPath, destDir, prefix, template)
 
-def subStageDirect(params, binaryFullPath, destDir, prefix):
+def subStageDirect(params, binaryFullPath, destDir, prefix, template):
     subprocess.check_call([binaryFullPath, destDir, prefix],
                           cwd=destDir)
 
-def subStageBatch(params, binaryFullPath, destDir, prefix):
+def subStageBatch(params, binaryFullPath, destDir, prefix, template):
     # Substitute:
     # Email: ${Email}
     # BinaryFullPath: ${BinaryFullPath}
     # DirData: ${DirData}
     # Prefix: ${Prefix}
-
     substitutions = params['Config'] # contains Email, DirData, Prefix
     substitutions['BinaryFullPath'] = binaryFullPath
+    jobName = prefix + "s3_L_" + os.path.split(binaryFullPath)[1]
+    substitutions['JobName'] = jobName[:15] # at most 15 characters
+    substitutions['TemplateName'] = template
     outPath = pu.writeBatchFile( substitutions,
                        params['Config']['DirPacoRoot'],
-                       destDir=destDir, prefix=prefix )
-    subprocess.check_call(['qsub', outPath])
-
-subStageMethods = { "direct" : subStageDirect,
-                    "batch"  : subStageBatch }
+                       destDir=destDir)
+    subprocess.check_call(['qsub', outPath], cwd = destDir)

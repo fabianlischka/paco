@@ -372,13 +372,12 @@ def writeParamsFile(substitutions, pacoRootDir, destDir=".", prefix=""):
     return outPath
 
 
-def writeBatchFile(substitutions, pacoRootDir, destDir=".", prefix=""):
-    fpre = prefix + "s3_"
-    templatePath = os.path.join(pacoRootDir, "template_batch.pbs")
+def writeBatchFile(substitutions, pacoRootDir, destDir="."):
+    templatePath = os.path.join(pacoRootDir, substitutions['TemplateName'])
     with open(templatePath, 'r') as f:
         template = string.Template(f.read())
     outfile = template.substitute(substitutions)
-    outPath = os.path.join(destDir, fpre+"batch.pbs")
+    outPath = os.path.join(destDir, substitutions["JobName"] + ".pbs")
     with open(outPath, 'w') as f:
         f.write(outfile)
     return outPath

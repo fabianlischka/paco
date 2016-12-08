@@ -6,6 +6,7 @@
 # BinaryFullPath: ${BinaryFullPath}
 # DirData: ${DirData}
 # Prefix: ${Prefix}
+# JobName: ${JobName}
 # Where literal dollar signs are required, use two consecutive ones.
 # If there are two dollar signs here, this is the template itself: $$
 
@@ -36,7 +37,7 @@
 #          no blank spaces, start with alphanumeric character)
 #          Default is name of pbs script file
 
-#PBS -N Paco_Control
+#PBS -N ${JobName}
 
 #          Specify the number of nodes requested and the
 #          number of processors per node.
